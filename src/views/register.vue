@@ -5,15 +5,15 @@
             <form action="/register" method="post" id="register-form">
                 <div class="form-group">
                     <label for="username">用户名</label>
-                    <input type="text" id="username" name="username" v-model="username" >
+                    <input type="text" id="username" name="username" v-model="username" required>
                 </div>
                 <div class="form-group">
                     <label for="password">密码</label>
-                    <input type="password" id="password" name="password" v-model="password" >
+                    <input type="password" id="password" name="password" v-model="password" required>
                 </div>
                 <div class="form-group">
                     <label for="confirm-password">确认密码</label>
-                    <input type="password" id="confirm-password" name="confirmPassword" v-model="confirmPassword" >
+                    <input type="password" id="confirm-password" name="confirmPassword" v-model="confirmPassword" required>
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn-primary" @click="clickRegister">注册</button>

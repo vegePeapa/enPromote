@@ -5,11 +5,11 @@
             <form action="/login" method="post" id="login-form">
                 <div class="form-group">
                     <label for="username">用户名</label>
-                    <input type="text" id="username" name="username" v-model="username">
+                    <input type="text" id="username" name="username" v-model="username" required>
                 </div>
                 <div class="form-group">
                     <label for="password">密码</label>
-                    <input type="password" id="password" name="password" v-model="password" >
+                    <input type="password" id="password" name="password" v-model="password" required>
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn-primary" @click="clickLogin" >登录</button>
@@ -22,27 +22,19 @@
     </div>
 </template>
 <script setup>
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import { login } from '@/api/auth';
 const username = ref('');
 const password = ref('');
 function clickLogin(e){
     e.preventDefault();
-    console.log(username.value);
-    
     const data = {
         username: username.value,
         password: password.value
     }
     // api请求
     login(data).then(res => {
-        console.log(res)
-        return res.data
-    }).then(data=>{
-        console.log(data);
-        if(data.code !== 200){
-            alert(data.message)
-        }
+        console.log(res);
     }).catch(err => {
         console.log(err);
     });
