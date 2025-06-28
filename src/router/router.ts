@@ -20,7 +20,7 @@ const router = createRouter({
         {
             path: '/vocabulary',
             name: 'Vocabulary',
-            component: () => import('../views/home.vue'), // 暂时指向首页，后续开发
+            component: () => import('../views/vocabulary.vue'),
         },
         {
             path: '/grammar',

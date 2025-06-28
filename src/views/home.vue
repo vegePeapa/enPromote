@@ -7,7 +7,7 @@
       <!-- 英雄区域 -->
       <section class="hero">
         <div class="hero-content">
-          <h2>提升您的英语水平</h2>
+          <h2>提升您的英语水平{{ username }}</h2>
           <p>通过互动练习、实时反馈和个性化学习路径，让英语学习变得轻松有趣</p>
           <button class="btn-primary">立即开始</button>
         </div>
@@ -120,11 +120,14 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-
+import { getUserInfo } from '@/api/auth';
 // 可以在这里添加一些首页需要的交互逻辑
-
+const username = ref('');
 onMounted(() => {
   console.log('首页加载完成');
+  getUserInfo().then(res => {
+    username.value = res.data.username;
+  })
 });
 </script>
 <script>

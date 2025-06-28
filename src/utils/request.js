@@ -16,6 +16,12 @@ request.interceptors.request.use(config => {
 request.interceptors.response.use(response => {
     return response;
 }, error => {
+    // 401在后端设置的是未登录的错误码
+    if (error.response.status === 401) {
+        alert('请先登录')
+        // 跳转到登录页面
+        window.location.href = error.response.data.redirect;
+    }
     return Promise.reject(error);
 });
 

@@ -53,7 +53,8 @@
 }
 
 .btn-login,
-.btn-register {
+.btn-register,
+.btn-logout {
     padding: 8px 16px;
     text-decoration: none;
     border-radius: 4px;
@@ -61,9 +62,17 @@
     transition: all 0.3s;
 }
 
-.btn-login {
+
+.btn-login,
+.btn-logout {
     color: #4285f4;
     border: 1px solid #4285f4;
+}
+
+.username {
+    color: #4285f4;
+    font-weight: 500;
+    font-size: 1.2rem;
 }
 
 .btn-register {

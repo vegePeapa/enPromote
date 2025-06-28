@@ -35,6 +35,13 @@ function clickLogin(e){
     // api请求
     login(data).then(res => {
         console.log(res);
+        if(res.status === 200){
+            // 登录成功
+           window.location.href = '/'
+        }else{
+            // 登录失败
+            alert('12'+res.message)
+        }
     }).catch(err => {
         console.log(err);
     });
