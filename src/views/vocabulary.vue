@@ -28,7 +28,7 @@
 <script setup>
 import { ref, computed, reactive, onMounted } from 'vue';
 import { getUserInfo } from '@/api/auth';
-import { getWordList } from '@/api/word';
+import { getWordList, updateWordProgress } from '@/api/word';
 
 // 用户信息及进度
 const userInfo = ref({});
@@ -77,8 +77,8 @@ async function loadWordList() {
     });
     console.log(response);
     if(response.status === 200) {
-      words.value = response.data.data;
-      console.log('加载的单词列表:', words.value.words);
+      words.value = response.data.data.words;
+      console.log('加载的单词列表:', words.value);
     } else {
       console.error('加载单词列表失败:', response.message);
     }
@@ -155,9 +155,14 @@ const nextWord = async () => {
   } else {
     // 当前批次单词学习完成，更新进度
     currentIndex.value += words.value.length;
-    
+    alert('您已经学习了'+words.value.length+'个单词！');
     // 更新用户进度（实际项目中应调用API保存进度）
-    // await updateWordProgress(`${currentLetter.value}:${currentIndex.value}`);
+    const res = await updateWordProgress();
+    if(res.status === 200){
+      alert('更新成功');
+    }else{
+      alert('更新失败');
+    }
     
     // 练习完成，返回选择页面或加载下一批单词
     currentMode.value = 'select';

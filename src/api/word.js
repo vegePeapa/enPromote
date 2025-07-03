@@ -1,7 +1,7 @@
 import request from '@/utils/request';
 
 // 获取单词列表
-export function getWordList(params) {
+function getWordList(params) {
     return request({
         url: '/word/getWordList',
         method: 'get',
@@ -10,11 +10,10 @@ export function getWordList(params) {
 }
 
 // 更新单词学习进度
-export function updateWordProgress(data) {
+function updateWordProgress() {
     return request({
         url: '/word/updateWordProgress',
         method: 'post',
-        data
     });
 }
 
@@ -25,4 +24,4 @@ function getWordInfo(data) {
 function getWordProgress() {
     return request.get('/word/getWordProgress');
 }
-export { getWordInfo, getWordProgress };
+export { getWordInfo, getWordProgress, updateWordProgress, getWordList };
