@@ -31,8 +31,6 @@
  const username = ref('')
  
  getUserInfo().then(res => {  
-    console.log(res);
-    console.log(res.data.code);
     
     if(res.data.code !== 200){
         currentModule.value = 'unlogin'

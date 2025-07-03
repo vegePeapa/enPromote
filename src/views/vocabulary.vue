@@ -26,34 +26,102 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, reactive, onMounted } from 'vue';
 import { getUserInfo } from '@/api/auth';
+import { getWordList } from '@/api/word';
 
-getUserInfo().then(res => {
-  console.log(res);
-})
+// 用户信息及进度
+const userInfo = ref({});
+const currentLetter = ref('A');
+const currentIndex = ref(0);
+const showMeaning = ref(false);
+
+// 单词数据
+const words = ref([]);
+const currentWordIndex = ref(0);
+
 // 当前模式：select（选择页面）, practice（练习模式）, review（复习模式）
 const currentMode = ref('select');
 
-// 当前展示的单词
-const currentWord = computed(() => {
-  // 向后端请求单词信息
-  
+// 加载用户信息和进度
+onMounted(async () => {
+  try {
+    const res = await getUserInfo();
+    if (res.code === 200) {
+      userInfo.value = res.data;
+      
+      // 从进度中提取字母和索引
+      if (userInfo.value.cet4 && userInfo.value.cet4.position) {
+        const progress = userInfo.value.cet4.position.split(':');
+        if (progress.length === 2) {
+          currentLetter.value = progress[0];
+          currentIndex.value = parseInt(progress[1]) || 0;
+        }
+      }
+      
+      // 预加载单词列表
+      await loadWordList();
+    }
+  } catch (error) {
+    console.error('获取用户信息失败', error);
+  }
 });
 
+// 加载单词列表
+async function loadWordList() {
+  try {
+    // 使用查询参数请求单词
+    const response = await getWordList({ 
+      letter: currentLetter.value, 
+      index: currentIndex.value 
+    });
+    console.log(response);
+    if(response.status === 200) {
+      words.value = response.data.data;
+      console.log('加载的单词列表:', words.value.words);
+    } else {
+      console.error('加载单词列表失败:', response.message);
+    }
+      
+      // 重置单词索引
+      currentWordIndex.value = 0;
+    
+  } catch (error) {
+    console.error('请求单词列表错误:', error);
+  }
+}
 
+// 计算属性：当前显示的单词
+const currentWord = computed(() => {
+  if (!words.value || words.value.length === 0) {
+    return '加载中...';
+  }
+  
+  if (currentWordIndex.value >= words.value.length) {
+    return '本组单词学习完成';
+  }
+  
+  return words.value[currentWordIndex.value];
+});
+
+// 计算属性：当前单词的释义（这里需要与后端API保持一致，暂时返回空）
+const currentMeaning = computed(() => {
+  return ''; // 实际项目中应返回单词释义
+});
 
 // 开始练习模式
-const startPractice = () => {
+const startPractice = async () => {
   currentMode.value = 'practice';
-  currentIndex.value = 0;
+  await loadWordList(); // 确保加载了最新的单词列表
+  currentWordIndex.value = 0;
   showMeaning.value = false;
 };
 
 // 开始复习模式
-const startReview = () => {
+const startReview = async () => {
   currentMode.value = 'review';
-  currentIndex.value = 0;
+  await loadWordList(); // 确保加载了最新的单词列表
+  currentWordIndex.value = 0;
   showMeaning.value = false;
 };
 
@@ -80,12 +148,18 @@ const handleUnknown = () => {
 };
 
 // 切换到下一个单词
-const nextWord = () => {
-  if (currentIndex.value < words.length - 1) {
-    currentIndex.value += 1;
+const nextWord = async () => {
+  if (currentWordIndex.value < words.value.length - 1) {
+    currentWordIndex.value += 1;
     showMeaning.value = false;
   } else {
-    // 练习完成，返回选择页面
+    // 当前批次单词学习完成，更新进度
+    currentIndex.value += words.value.length;
+    
+    // 更新用户进度（实际项目中应调用API保存进度）
+    // await updateWordProgress(`${currentLetter.value}:${currentIndex.value}`);
+    
+    // 练习完成，返回选择页面或加载下一批单词
     currentMode.value = 'select';
   }
 };
