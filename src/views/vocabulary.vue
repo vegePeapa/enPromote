@@ -1,6 +1,11 @@
 <template>
   <VocabularyCard v-if="showMeaning === true" @next="nextWord" :word="currentWord" :wordData="currentWordData"
     :loading="isLoadingWordData" />
+
+  <!-- 学习进度弹窗 -->
+  <StudyProgressModal :visible="showProgressModal" :wordsCount="completedWordsCount" :startTime="studyStartTime"
+    @rest="handleProgressModalRest" @continue="handleProgressModalContinue" @close="showProgressModal = false" />
+
   <div class="vocabulary-container">
     <!-- 主页面 - 选择模式 -->
     <div class="mode-selection" v-if="currentMode === 'select'">
@@ -29,7 +34,8 @@
 
 <script setup>
 import VocabularyCard from '@/components/vocabularyCard.vue';
-import { ref, computed, reactive, onMounted } from 'vue';
+import StudyProgressModal from '@/components/StudyProgressModal.vue';
+import { ref, computed, onMounted } from 'vue';
 import { getUserInfo } from '@/api/auth';
 import { getWordList, updateWordProgress, getWordInfo } from '@/api/word';
 
@@ -47,6 +53,11 @@ const isLoadingWordData = ref(false); // 添加加载状态
 
 // 当前模式：select（选择页面）, practice（练习模式）, review（复习模式）
 const currentMode = ref('select');
+
+// 学习进度弹窗相关状态
+const showProgressModal = ref(false);
+const studyStartTime = ref(null);
+const completedWordsCount = ref(0);
 
 // 获取单词数据
 const getWordData = async (params) => {
@@ -144,6 +155,8 @@ const currentMeaning = computed(() => {
 // 开始练习模式
 const startPractice = async () => {
   currentMode.value = 'practice';
+  studyStartTime.value = new Date(); // 记录开始学习时间
+  completedWordsCount.value = 0; // 重置完成单词数
   await loadWordList(); // 确保加载了最新的单词列表
   currentWordIndex.value = 0;
   showMeaning.value = false;
@@ -185,6 +198,23 @@ const handleUnknown = () => {
   }, 2000); // 显示意思2秒后自动进入下一个单词
 };
 
+// 处理学习进度弹窗事件
+const handleProgressModalRest = () => {
+  // 用户选择休息，返回选择页面
+  currentMode.value = 'select';
+  showProgressModal.value = false;
+};
+
+const handleProgressModalContinue = async () => {
+  // 用户选择继续学习，加载下一批单词
+  showProgressModal.value = false;
+  studyStartTime.value = new Date(); // 重新记录开始时间
+  completedWordsCount.value = 0; // 重置完成单词数
+  await loadWordList(); // 加载新的单词列表
+  currentWordIndex.value = 0;
+  showMeaning.value = false;
+};
+
 // 切换到下一个单词
 const nextWord = async () => {
   if (currentWordIndex.value < words.value.length - 1) {
@@ -193,17 +223,17 @@ const nextWord = async () => {
   } else {
     // 当前批次单词学习完成，更新进度
     currentIndex.value += words.value.length;
-    alert('您已经学习了' + words.value.length + '个单词！');
+    completedWordsCount.value = words.value.length;
+
     // 更新用户进度（实际项目中应调用API保存进度）
     const res = await updateWordProgress();
     if (res.status === 200) {
-      alert('更新成功');
+      console.log('进度更新成功');
+      // 显示学习进度弹窗
+      showProgressModal.value = true;
     } else {
-      alert('更新失败');
+      alert('更新失败，请重试');
     }
-
-    // 练习完成，返回选择页面或加载下一批单词
-    currentMode.value = 'select';
   }
 };
 </script>
