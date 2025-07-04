@@ -17,8 +17,12 @@ function updateWordProgress() {
     });
 }
 
-function getWordInfo(data) {
-    return request.get('/word/getWordInfo', data);
+function getWordInfo(params) {
+    return request({
+        url: '/word/getWordInfo',
+        method: 'get',
+        params
+    })
 }
 // 获取用户单词进度
 function getWordProgress() {

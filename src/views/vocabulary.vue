@@ -1,4 +1,6 @@
 <template>
+  <VocabularyCard v-if="showMeaning === true" @next="nextWord" :word="currentWord" :wordData="currentWordData"
+    :loading="isLoadingWordData" />
   <div class="vocabulary-container">
     <!-- 主页面 - 选择模式 -->
     <div class="mode-selection" v-if="currentMode === 'select'">
@@ -26,9 +28,10 @@
 </template>
 
 <script setup>
+import VocabularyCard from '@/components/vocabularyCard.vue';
 import { ref, computed, reactive, onMounted } from 'vue';
 import { getUserInfo } from '@/api/auth';
-import { getWordList, updateWordProgress } from '@/api/word';
+import { getWordList, updateWordProgress, getWordInfo } from '@/api/word';
 
 // 用户信息及进度
 const userInfo = ref({});
@@ -39,17 +42,45 @@ const showMeaning = ref(false);
 // 单词数据
 const words = ref([]);
 const currentWordIndex = ref(0);
+const currentWordData = ref({});
+const isLoadingWordData = ref(false); // 添加加载状态
 
 // 当前模式：select（选择页面）, practice（练习模式）, review（复习模式）
 const currentMode = ref('select');
+
+// 获取单词数据
+const getWordData = async (params) => {
+  isLoadingWordData.value = true; // 开始加载
+  try {
+    const res = await getWordInfo(params);
+    console.log('返回的单词数据res:', res);
+
+    currentWordData.value = res.data;
+    console.log('currentWordData.value:', currentWordData.value);
+  } catch (error) {
+    console.error('获取单词数据失败:', error);
+
+    // 更详细的错误处理
+    if (error.code === 'ECONNABORTED') {
+      console.log('请求超时，服务器可能正在从第三方API获取单词数据，请稍后重试');
+      // 可以显示用户友好的提示
+    } else if (!error.response) {
+      console.log('网络连接错误，请检查网络连接');
+    } else {
+      console.log('服务器错误:', error.response?.data?.message || error.message);
+    }
+  } finally {
+    isLoadingWordData.value = false; // 结束加载
+  }
+}
 
 // 加载用户信息和进度
 onMounted(async () => {
   try {
     const res = await getUserInfo();
-    if (res.code === 200) {
+    if (res.status === 200) {
       userInfo.value = res.data;
-      
+      console.log('userInfo:', userInfo.value);
       // 从进度中提取字母和索引
       if (userInfo.value.cet4 && userInfo.value.cet4.position) {
         const progress = userInfo.value.cet4.position.split(':');
@@ -58,7 +89,7 @@ onMounted(async () => {
           currentIndex.value = parseInt(progress[1]) || 0;
         }
       }
-      
+
       // 预加载单词列表
       await loadWordList();
     }
@@ -71,21 +102,22 @@ onMounted(async () => {
 async function loadWordList() {
   try {
     // 使用查询参数请求单词
-    const response = await getWordList({ 
-      letter: currentLetter.value, 
-      index: currentIndex.value 
+    console.log('currentValue:', currentLetter.value, currentIndex.value);
+    const response = await getWordList({
+      letter: currentLetter.value,
+      index: currentIndex.value
     });
     console.log(response);
-    if(response.status === 200) {
+    if (response.status === 200) {
       words.value = response.data.data.words;
       console.log('加载的单词列表:', words.value);
     } else {
       console.error('加载单词列表失败:', response.message);
     }
-      
-      // 重置单词索引
-      currentWordIndex.value = 0;
-    
+
+    // 重置单词索引
+    currentWordIndex.value = 0;
+
   } catch (error) {
     console.error('请求单词列表错误:', error);
   }
@@ -96,11 +128,11 @@ const currentWord = computed(() => {
   if (!words.value || words.value.length === 0) {
     return '加载中...';
   }
-  
+
   if (currentWordIndex.value >= words.value.length) {
     return '本组单词学习完成';
   }
-  
+
   return words.value[currentWordIndex.value];
 });
 
@@ -134,14 +166,20 @@ const handleKnow = () => {
 // 处理"模糊"按钮点击
 const handleVague = () => {
   showMeaning.value = true;
-  setTimeout(() => {
-    nextWord();
-  }, 2000); // 显示意思2秒后自动进入下一个单词
+  // 立即清空当前单词数据，避免显示上一个单词的内容
+  currentWordData.value = {};
+  getWordData({ word: currentWord.value });
+  // setTimeout(() => {
+  //   nextWord();
+  // }, 2000); // 显示意思2秒后自动进入下一个单词
 };
 
 // 处理"不认识"按钮点击
 const handleUnknown = () => {
   showMeaning.value = true;
+  // 立即清空当前单词数据，避免显示上一个单词的内容
+  currentWordData.value = {};
+  getWordData({ word: currentWord.value });
   setTimeout(() => {
     nextWord();
   }, 2000); // 显示意思2秒后自动进入下一个单词
@@ -155,15 +193,15 @@ const nextWord = async () => {
   } else {
     // 当前批次单词学习完成，更新进度
     currentIndex.value += words.value.length;
-    alert('您已经学习了'+words.value.length+'个单词！');
+    alert('您已经学习了' + words.value.length + '个单词！');
     // 更新用户进度（实际项目中应调用API保存进度）
     const res = await updateWordProgress();
-    if(res.status === 200){
+    if (res.status === 200) {
       alert('更新成功');
-    }else{
+    } else {
       alert('更新失败');
     }
-    
+
     // 练习完成，返回选择页面或加载下一批单词
     currentMode.value = 'select';
   }
