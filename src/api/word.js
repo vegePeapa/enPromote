@@ -28,4 +28,17 @@ function getWordInfo(params) {
 function getWordProgress() {
     return request.get('/word/getWordProgress');
 }
-export { getWordInfo, getWordProgress, updateWordProgress, getWordList };
+function updateWordPriority(data) {
+    return request({
+        url: '/commendWords/updateWordPriority',
+        method: 'post',
+        data
+    })
+}
+function getReviewWord() {
+    return request({
+        url: '/commendWords/getReviewWord',
+        method: 'get',
+    })
+}
+export { getWordInfo, getWordProgress, updateWordProgress, getWordList, updateWordPriority, getReviewWord };
