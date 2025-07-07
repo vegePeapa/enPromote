@@ -4,14 +4,14 @@
     <div v-if="loading" class="loading">
       <p>加载中...</p>
     </div>
-    
+
     <!-- 错误状态 -->
     <div v-else-if="error" class="error">
       <p>{{ error }}</p>
     </div>
-    
+
     <!-- 词汇内容 -->
-    <div v-else-if="wordData" class="word-content">
+    <div v-else-if="wordData && wordData.word" class="word-content">
       <!-- 单词和音标 -->
       <div class="word-header">
         <h2 class="word-title">{{ wordData.word }}</h2>
@@ -25,39 +25,37 @@
         </div>
         <button class="next-btn" @click="emit('next')">next</button>
       </div>
-      
+
       <!-- 词性和释义 -->
       <div class="meanings" v-if="wordData.meanings && wordData.meanings.length">
         <div v-for="(meaning, mIndex) in wordData.meanings" :key="mIndex" class="meaning-item">
           <h3 class="part-of-speech">{{ meaning.partOfSpeech }}</h3>
-          
+
           <div class="definitions">
             <div v-for="(definition, dIndex) in meaning.definitions" :key="dIndex" class="definition-item">
               <p class="definition">{{ definition.definition }}</p>
-              
+
               <p v-if="definition.example" class="example">
                 "{{ definition.example }}"
               </p>
-              
+
               <div v-if="definition.synonyms && definition.synonyms.length" class="synonyms">
                 <span>同义词: </span>
                 <span v-for="(synonym, sIndex) in definition.synonyms" :key="sIndex">
-                  {{ synonym }}{{ sIndex < definition.synonyms.length - 1 ? ', ' : '' }}
-                </span>
+                  {{ synonym }}{{ sIndex < definition.synonyms.length - 1 ? ', ' : '' }} </span>
               </div>
-              
+
               <div v-if="definition.antonyms && definition.antonyms.length" class="antonyms">
                 <span>反义词: </span>
                 <span v-for="(antonym, aIndex) in definition.antonyms" :key="aIndex">
-                  {{ antonym }}{{ aIndex < definition.antonyms.length - 1 ? ', ' : '' }}
-                </span>
+                  {{ antonym }}{{ aIndex < definition.antonyms.length - 1 ? ', ' : '' }} </span>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    
+
     <!-- 无数据状态 -->
     <div v-else class="no-data">
       <p>没有找到单词数据</p>
@@ -81,7 +79,7 @@ const props = defineProps({
 });
 
 // 定义事件
-const emit = defineEmits(['word-click', 'audio-play','next']);
+const emit = defineEmits(['word-click', 'audio-play', 'next']);
 
 // 状态管理
 const loading = ref(false);
@@ -91,17 +89,17 @@ const audioElement = ref(null);
 // 播放发音
 function playAudio(audioUrl) {
   if (!audioUrl) return;
-  
+
   if (!audioElement.value) {
     audioElement.value = new Audio();
   }
-  
+
   audioElement.value.src = audioUrl;
   audioElement.value.play().catch(err => {
     console.error('音频播放失败:', err);
     error.value = '音频播放失败';
   });
-  
+
   emit('audio-play', audioUrl);
 }
 
@@ -123,9 +121,11 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.2s;
 }
+
 .next-btn:hover {
   background: #1769aa;
 }
+
 .vocabulary-card {
   width: 100%;
   max-width: 600px;
@@ -137,7 +137,7 @@ onMounted(() => {
   transition: all 0.3s ease;
   position: fixed;
   left: 33%;
-  
+
 }
 
 .vocabulary-card:hover {
@@ -145,7 +145,9 @@ onMounted(() => {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
 }
 
-.loading, .error, .no-data {
+.loading,
+.error,
+.no-data {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -230,7 +232,8 @@ onMounted(() => {
   padding-left: 10px;
 }
 
-.synonyms, .antonyms {
+.synonyms,
+.antonyms {
   font-size: 0.9rem;
   margin-top: 5px;
   color: #555;
