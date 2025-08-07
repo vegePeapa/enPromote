@@ -29,6 +29,10 @@ let userWordSchema = new mongoose.Schema({
     nextReviewTime: { // 推荐下次复习哦时间
         type: Date,
         default: Date.now
+    },
+    priority: {
+        type: Number,
+        default: 0
     }
 });
 userWordSchema.index({ userId: 1, wordId: 1 }, { unique: true });

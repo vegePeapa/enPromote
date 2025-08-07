@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const UserWord = require('../modules/UserWord');
+const User = require('../modules/User');
 const Words = require('../modules/Word')
 const { getWordFromApi } = require('./third_part/getword');
 const { default: mongoose } = require('mongoose');
@@ -15,10 +16,35 @@ router.get('/getReviewWord', async (req, res) => {
             message: '请先登录'
         });
     }
-    const userWords = await UserWord.find({ userId: userid });
+    const user = await User.findById(userid);
+    const reviewLimit = user?.planReviweWords || 10; // 默认10个单词
+    const userWords = await UserWord
+        .find({ userId: userid })
+        .sort({ priority: -1 })
+        .limit(reviewLimit);
+
     res.json({
         code: 200,
-        data: await computedWordPriority(userWords)
+        data: await Promise.all(userWords.map(async data => {
+            // 使用 findById 或 findOne 而不是 find，因为 find 返回数组
+            const wordObj = await Words.findById(data['wordId']);
+
+            if (!wordObj) {
+                console.log(`未找到单词ID: ${data['wordId']}`);
+                return null; // 或者返回默认值
+            }
+
+            console.log('找到单词:', wordObj.word);
+
+            // 返回包含单词和中文释义的对象
+            return {
+                word: wordObj.word,
+                mean: wordObj.chineseMeaning || '', // 使用数据库中的chineseMeaning字段
+                phonetic_symbol: wordObj.phonetics && wordObj.phonetics[0] ? wordObj.phonetics[0].text : '',
+                initial: wordObj.word.charAt(0).toUpperCase()
+            };
+        })
+        ).then(results => results.filter(item => item !== null)) // 过滤掉null值
     });
 })
 
@@ -61,9 +87,11 @@ router.post('/updateWordPriority', async (req, res) => {
                 status: newStatus ? newStatus : 'unknown',
                 lastSeenAt: new Date() // 直接在创建时设置lastSeenAt
             })
+            userWord.priority = await computedWordPriority(userWord);
             await userWord.save();
         } else {
             userWord.status = newStatus ? newStatus : userWord.status;// 因为听力不会传status，但需要更新状态（reviewCounts）
+            userWord.priority = await computedWordPriority(userWord);
             userWord.lastSeenAt = new Date() // 更新最后复习时间
             await userWord.save();
         }
@@ -85,53 +113,47 @@ router.post('/updateWordPriority', async (req, res) => {
 })
 
 
-// 计算单词优先度 返回新单词列表
-async function computedWordPriority(userWords) {
+
+// 计算单词优先度
+async function computedWordPriority(wordData) {
     try {
-        // 计算优先度分数，分数越高优先级越高
-        const wordWeight = {
-            'unknown': 3,
-            'vague': 2,
-            'know': 1
-        };
-        // 归一化辅助函数
-        function normalize(val, min, max) {
+        const now = new Date();
+        const {
+            status,
+            reviewCounts,
+            firstSeenAt,
+            lastSeenAt,
+            nextReviewTime
+        } = wordData;
+        // 分项打分（满分100）
+        let score = 0;
 
-            if (max === min) return 1;
-            return 1 - (val - min) / (max - min);
+        // 1. status 权重
+        switch (status) {
+            case 'new': score += 30; break;
+            case 'learning': score += 20; break;
+            case 'know': score += 5; break;
+            default: score += 10; break;
         }
-        if (!Array.isArray(userWords) || userWords.length === 0) return [];
-        // 计算reviewCounts和nextReviewTime的最大最小值
-        const reviewCountsArr = userWords.map(w => w.reviewCounts || 0);
-        const nextReviewArr = userWords.map(w => new Date(w.nextReviewTime).getTime());
-        const minReview = Math.min(...reviewCountsArr);
-        const maxReview = Math.max(...reviewCountsArr);
-        const minNextReview = Math.min(...nextReviewArr);
-        const maxNextReview = Math.max(...nextReviewArr);
-        // 计算优先度
-        const result = userWords.map(w => {
-            const statusScore = wordWeight[w.status] || 0;
-            const reviewScore = normalize(w.reviewCounts || 0, minReview, maxReview); // 越少越高
-            const nextReviewScore = normalize(new Date(w.nextReviewTime).getTime(), minNextReview, maxNextReview); // 越早越高
-            // 权重可调整
-            const priority = statusScore * 0.6 + reviewScore * 0.2 + nextReviewScore * 0.2;
-            return { ...w._doc, priority };
-        });
-        // 按优先度降序排序
-        result.sort((a, b) => b.priority - a.priority);
 
-        return Promise.all(result.map(async data => {
-            const wordObj = await Words.findOne({ _id: data['wordId'] });
-            if (!wordObj) return null;
+        // 2. 距离上次复习时间越久，越加分
+        const lastSeen = new Date(lastSeenAt);
+        const hoursSinceLastSeen = (now - lastSeen) / (1000 * 60 * 60); // 小时
+        score += Math.min(hoursSinceLastSeen * 0.5, 20); // 最多加20分
 
-            // 返回包含单词和中文释义的对象
-            return {
-                word: wordObj.word,
-                mean: wordObj.chineseMeaning || '', // 使用数据库中的chineseMeaning字段
-                phonetic_symbol: wordObj.phonetics && wordObj.phonetics[0] ? wordObj.phonetics[0].text : '',
-                initial: wordObj.word.charAt(0).toUpperCase()
-            };
-        })).then(results => results.filter(item => item !== null)); // 过滤掉null值
+        // 3. reviewCounts 越多，分数越低
+        score += Math.max(15 - reviewCounts, 0); // 初期次数低得分高，最多15分
+
+        // 4. nextReviewTime 是否已过
+        const nextReview = new Date(nextReviewTime);
+        const overdueHours = (now - nextReview) / (1000 * 60 * 60);
+        if (overdueHours > 0) {
+            score += Math.min(overdueHours * 1.5, 30); // 最多加30分
+        }
+
+        // 总分上限控制
+        return Math.min(Math.round(score), 100);
+
     } catch (err) {
         console.log(err);
         return []

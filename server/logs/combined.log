@@ -241,3 +241,226 @@
 2025-07-23 15:36:14 [INFO]: User Action
 2025-07-23 18:43:42 [INFO]: 服务器启动成功
 2025-07-23 18:43:42 [INFO]: 数据库连接成功
+2025-08-07 16:09:07 [INFO]: 服务器启动成功
+2025-08-07 16:09:07 [INFO]: 数据库连接成功
+2025-08-07 16:09:18 [INFO]: User Action
+2025-08-07 16:09:18 [INFO]: User Action
+2025-08-07 16:09:23 [INFO]: User Action
+2025-08-07 16:09:23 [INFO]: User Action
+2025-08-07 16:09:23 [INFO]: User Action
+2025-08-07 16:09:23 [INFO]: 用户学习进度更新: 687753baf62995ee21e65839, 学习0个单词
+2025-08-07 16:10:16 [INFO]: User Action
+2025-08-07 16:10:16 [INFO]: 用户学习进度更新: 687753baf62995ee21e65839, 学习10个单词
+2025-08-07 16:10:29 [INFO]: User Action
+2025-08-07 16:23:29 [INFO]: 服务器启动成功
+2025-08-07 16:23:29 [INFO]: 数据库连接成功
+2025-08-07 17:29:03 [INFO]: 服务器启动成功
+2025-08-07 17:29:03 [INFO]: 数据库连接成功
+2025-08-07 17:34:01 [INFO]: 服务器启动成功
+2025-08-07 17:34:01 [INFO]: 数据库连接成功
+2025-08-07 17:34:16 [INFO]: 服务器启动成功
+2025-08-07 17:34:16 [INFO]: 数据库连接成功
+2025-08-07 17:42:14 [INFO]: 服务器启动成功
+2025-08-07 17:42:14 [INFO]: 数据库连接成功
+2025-08-07 17:42:39 [INFO]: 服务器启动成功
+2025-08-07 17:42:39 [INFO]: 数据库连接成功
+2025-08-07 17:43:43 [INFO]: User Action
+2025-08-07 17:43:43 [INFO]: 用户退出登录: 687753baf62995ee21e65839
+2025-08-07 17:43:50 [INFO]: User Action
+2025-08-07 17:43:50 [INFO]: 新用户注册成功: test
+2025-08-07 17:43:55 [INFO]: User Action
+2025-08-07 17:43:55 [INFO]: 用户登录成功: test
+2025-08-07 17:43:56 [INFO]: User Action
+2025-08-07 17:43:56 [INFO]: User Action
+2025-08-07 18:56:59 [INFO]: 服务器启动成功
+2025-08-07 18:57:00 [INFO]: 数据库连接成功
+2025-08-07 19:00:50 [INFO]: 服务器启动成功
+2025-08-07 19:00:50 [INFO]: 数据库连接成功
+2025-08-07 19:01:41 [INFO]: 服务器启动成功
+2025-08-07 19:01:41 [INFO]: 数据库连接成功
+2025-08-07 19:03:54 [INFO]: 服务器启动成功
+2025-08-07 19:03:54 [INFO]: 数据库连接成功
+2025-08-07 19:05:54 [INFO]: 服务器启动成功
+2025-08-07 19:05:54 [INFO]: 数据库连接成功
+2025-08-07 19:06:06 [INFO]: User Action
+2025-08-07 19:06:08 [INFO]: User Action
+2025-08-07 19:06:08 [INFO]: User Action
+2025-08-07 19:06:08 [INFO]: 用户学习进度更新: 68947556c96dbb30cc44392c, 学习0个单词
+2025-08-07 19:09:24 [INFO]: 服务器启动成功
+2025-08-07 19:09:24 [INFO]: 数据库连接成功
+2025-08-07 19:09:58 [INFO]: User Action
+2025-08-07 19:10:00 [INFO]: User Action
+2025-08-07 19:10:00 [INFO]: User Action
+2025-08-07 19:10:00 [INFO]: User Action
+2025-08-07 19:10:00 [INFO]: 用户学习进度更新: 68947556c96dbb30cc44392c, 学习0个单词
+2025-08-07 19:10:04 [INFO]: User Action
+2025-08-07 19:10:04 [INFO]: 用户退出登录: 68947556c96dbb30cc44392c
+2025-08-07 19:10:10 [INFO]: User Action
+2025-08-07 19:10:10 [INFO]: 用户登录成功: user
+2025-08-07 19:10:10 [INFO]: User Action
+2025-08-07 19:10:11 [INFO]: User Action
+2025-08-07 19:10:25 [INFO]: User Action
+2025-08-07 19:10:26 [INFO]: User Action
+2025-08-07 19:10:27 [INFO]: User Action
+2025-08-07 19:10:27 [INFO]: 用户学习进度更新: 687753baf62995ee21e65839, 学习0个单词
+2025-08-07 19:11:38 [INFO]: User Action
+2025-08-07 19:11:38 [INFO]: 用户退出登录: 687753baf62995ee21e65839
+2025-08-07 19:11:44 [INFO]: User Action
+2025-08-07 19:11:44 [INFO]: 用户登录成功: test
+2025-08-07 19:11:48 [INFO]: User Action
+2025-08-07 19:11:49 [INFO]: User Action
+2025-08-07 19:12:21 [INFO]: User Action
+2025-08-07 19:12:22 [INFO]: User Action
+2025-08-07 19:12:23 [INFO]: User Action
+2025-08-07 19:12:23 [INFO]: 用户学习进度更新: 68947556c96dbb30cc44392c, 学习0个单词
+2025-08-07 19:12:56 [INFO]: User Action
+2025-08-07 19:12:56 [INFO]: 用户学习进度更新: 68947556c96dbb30cc44392c, 学习10个单词
+2025-08-07 19:12:56 [INFO]: User Action
+2025-08-07 19:12:56 [INFO]: 用户学习进度更新: 68947556c96dbb30cc44392c, 学习10个单词
+2025-08-07 19:12:56 [INFO]: User Action
+2025-08-07 19:12:56 [INFO]: 用户学习进度更新: 68947556c96dbb30cc44392c, 学习10个单词
+2025-08-07 19:20:02 [INFO]: 服务器启动成功
+2025-08-07 19:20:02 [INFO]: 数据库连接成功
+2025-08-07 19:21:04 [INFO]: 服务器启动成功
+2025-08-07 19:21:04 [INFO]: 数据库连接成功
+2025-08-07 19:21:36 [INFO]: 服务器启动成功
+2025-08-07 19:21:36 [INFO]: 数据库连接成功
+2025-08-07 19:21:51 [INFO]: User Action
+2025-08-07 19:21:54 [INFO]: User Action
+2025-08-07 19:21:56 [INFO]: User Action
+2025-08-07 19:21:57 [INFO]: User Action
+2025-08-07 19:21:57 [INFO]: 用户学习进度更新: 68947556c96dbb30cc44392c, 学习0个单词
+2025-08-07 19:23:02 [INFO]: 服务器启动成功
+2025-08-07 19:23:02 [INFO]: 数据库连接成功
+2025-08-07 19:23:21 [INFO]: 服务器启动成功
+2025-08-07 19:23:21 [INFO]: 数据库连接成功
+2025-08-07 19:48:25 [INFO]: 服务器启动成功
+2025-08-07 19:48:25 [INFO]: 数据库连接成功
+2025-08-07 19:52:25 [INFO]: 服务器启动成功
+2025-08-07 19:52:25 [INFO]: 数据库连接成功
+2025-08-07 19:55:06 [INFO]: 服务器启动成功
+2025-08-07 19:55:06 [INFO]: 数据库连接成功
+2025-08-07 19:59:09 [INFO]: 服务器启动成功
+2025-08-07 19:59:09 [INFO]: 数据库连接成功
+2025-08-07 19:59:40 [INFO]: 服务器启动成功
+2025-08-07 19:59:40 [INFO]: 数据库连接成功
+2025-08-07 20:00:06 [INFO]: User Action
+2025-08-07 20:00:06 [INFO]: 用户退出登录: 68947556c96dbb30cc44392c
+2025-08-07 20:00:17 [INFO]: User Action
+2025-08-07 20:00:17 [INFO]: 新用户注册成功: admin
+2025-08-07 20:00:22 [INFO]: User Action
+2025-08-07 20:00:27 [INFO]: User Action
+2025-08-07 20:00:27 [INFO]: 用户登录成功: admin
+2025-08-07 20:00:31 [INFO]: User Action
+2025-08-07 20:00:33 [INFO]: User Action
+2025-08-07 20:00:39 [INFO]: User Action
+2025-08-07 20:00:41 [INFO]: User Action
+2025-08-07 20:00:41 [INFO]: User Action
+2025-08-07 20:00:41 [INFO]: 用户学习进度更新: 68949551d7b21b5ad461701a, 学习0个单词
+2025-08-07 20:02:50 [INFO]: 服务器启动成功
+2025-08-07 20:02:50 [INFO]: 数据库连接成功
+2025-08-07 20:03:09 [INFO]: 服务器启动成功
+2025-08-07 20:03:09 [INFO]: 数据库连接成功
+2025-08-07 20:05:01 [INFO]: User Action
+2025-08-07 20:05:01 [INFO]: 用户学习进度更新: 68949551d7b21b5ad461701a, 学习10个单词
+2025-08-07 20:10:04 [INFO]: 服务器启动成功
+2025-08-07 20:10:04 [INFO]: 数据库连接成功
+2025-08-07 20:10:19 [INFO]: User Action
+2025-08-07 20:10:21 [INFO]: User Action
+2025-08-07 20:10:23 [INFO]: User Action
+2025-08-07 20:10:24 [INFO]: User Action
+2025-08-07 20:10:24 [INFO]: 用户学习进度更新: 68949551d7b21b5ad461701a, 学习0个单词
+2025-08-07 20:11:54 [INFO]: 服务器启动成功
+2025-08-07 20:11:54 [INFO]: 数据库连接成功
+2025-08-07 20:12:10 [INFO]: User Action
+2025-08-07 20:12:12 [INFO]: User Action
+2025-08-07 20:12:14 [INFO]: User Action
+2025-08-07 20:12:15 [INFO]: User Action
+2025-08-07 20:12:15 [INFO]: 用户学习进度更新: 68949551d7b21b5ad461701a, 学习0个单词
+2025-08-07 20:44:47 [INFO]: 服务器启动成功
+2025-08-07 20:44:47 [INFO]: 数据库连接成功
+2025-08-07 20:45:00 [INFO]: User Action
+2025-08-07 20:45:04 [INFO]: User Action
+2025-08-07 20:45:05 [ERROR]: TypeError: Cannot read properties of undefined (reading 'charAt')
+    at C:\Users\86177\Desktop\BBBBig\server\router\commendWords.js:34:39
+    at Array.map (<anonymous>)
+    at C:\Users\86177\Desktop\BBBBig\server\router\commendWords.js:27:43
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-08-07 20:45:06 [INFO]: User Action
+2025-08-07 20:45:06 [INFO]: 用户学习进度更新: 68949551d7b21b5ad461701a, 学习0个单词
+2025-08-07 20:46:55 [INFO]: 服务器启动成功
+2025-08-07 20:46:55 [INFO]: 数据库连接成功
+2025-08-07 20:47:04 [ERROR]: TypeError: Cannot read properties of undefined (reading 'charAt')
+    at C:\Users\86177\Desktop\BBBBig\server\router\commendWords.js:36:39
+    at Array.map (<anonymous>)
+    at C:\Users\86177\Desktop\BBBBig\server\router\commendWords.js:27:43
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-08-07 20:48:05 [INFO]: 服务器启动成功
+2025-08-07 20:48:05 [INFO]: 数据库连接成功
+2025-08-07 20:48:11 [INFO]: 服务器启动成功
+2025-08-07 20:48:11 [INFO]: 数据库连接成功
+2025-08-07 20:48:35 [INFO]: 服务器启动成功
+2025-08-07 20:48:35 [INFO]: 数据库连接成功
+2025-08-07 20:48:46 [INFO]: User Action
+2025-08-07 20:48:49 [INFO]: User Action
+2025-08-07 20:48:50 [ERROR]: TypeError: Cannot read properties of undefined (reading 'charAt')
+    at C:\Users\86177\Desktop\BBBBig\server\router\commendWords.js:36:39
+    at Array.map (<anonymous>)
+    at C:\Users\86177\Desktop\BBBBig\server\router\commendWords.js:27:43
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2025-08-07 20:48:50 [INFO]: User Action
+2025-08-07 20:48:50 [INFO]: 用户学习进度更新: 68949551d7b21b5ad461701a, 学习0个单词
+2025-08-07 20:49:19 [INFO]: 服务器启动成功
+2025-08-07 20:49:19 [INFO]: 数据库连接成功
+2025-08-07 20:49:26 [INFO]: User Action
+2025-08-07 20:49:29 [INFO]: User Action
+2025-08-07 20:49:30 [ERROR]: TypeError: Cannot read properties of undefined (reading 'charAt')
+    at C:\Users\86177\Desktop\BBBBig\server\router\commendWords.js:36:39
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async Promise.all (index 0)
+    at async C:\Users\86177\Desktop\BBBBig\server\router\commendWords.js:27:15
+2025-08-07 20:49:31 [INFO]: User Action
+2025-08-07 20:49:31 [INFO]: 用户学习进度更新: 68949551d7b21b5ad461701a, 学习0个单词
+2025-08-07 20:51:43 [INFO]: 服务器启动成功
+2025-08-07 20:51:43 [INFO]: 数据库连接成功
+2025-08-07 20:51:58 [INFO]: 服务器启动成功
+2025-08-07 20:51:58 [INFO]: 数据库连接成功
+2025-08-07 20:52:19 [INFO]: 服务器启动成功
+2025-08-07 20:52:19 [INFO]: 数据库连接成功
+2025-08-07 20:52:25 [INFO]: User Action
+2025-08-07 20:52:28 [INFO]: User Action
+2025-08-07 20:52:29 [INFO]: User Action
+2025-08-07 20:52:30 [INFO]: User Action
+2025-08-07 20:52:30 [INFO]: 用户学习进度更新: 68949551d7b21b5ad461701a, 学习0个单词
+2025-08-07 20:53:11 [INFO]: User Action
+2025-08-07 20:53:13 [INFO]: User Action
+2025-08-07 20:53:13 [INFO]: User Action
+2025-08-07 20:53:13 [INFO]: User Action
+2025-08-07 20:53:13 [INFO]: 用户学习进度更新: 68949551d7b21b5ad461701a, 学习0个单词
+2025-08-07 20:55:12 [INFO]: User Action
+2025-08-07 20:55:12 [INFO]: 用户学习进度更新: 68949551d7b21b5ad461701a, 学习10个单词
+2025-08-07 20:55:23 [INFO]: User Action
+2025-08-07 20:55:26 [INFO]: User Action
+2025-08-07 20:55:28 [INFO]: User Action
+2025-08-07 20:55:28 [INFO]: User Action
+2025-08-07 20:55:28 [INFO]: 用户学习进度更新: 68949551d7b21b5ad461701a, 学习0个单词
+2025-08-07 20:57:52 [INFO]: User Action
+2025-08-07 20:57:52 [INFO]: 用户学习进度更新: 68949551d7b21b5ad461701a, 学习10个单词
+2025-08-07 20:59:03 [INFO]: 服务器启动成功
+2025-08-07 20:59:03 [INFO]: 数据库连接成功
+2025-08-07 20:59:49 [INFO]: User Action
+2025-08-07 20:59:49 [INFO]: 用户退出登录: 68949551d7b21b5ad461701a
+2025-08-07 20:59:58 [INFO]: User Action
+2025-08-07 20:59:58 [INFO]: 新用户注册成功: u
+2025-08-07 21:00:02 [INFO]: User Action
+2025-08-07 21:00:02 [INFO]: 用户登录成功: u
+2025-08-07 21:00:07 [INFO]: User Action
+2025-08-07 21:00:08 [INFO]: User Action
+2025-08-07 21:00:13 [INFO]: User Action
+2025-08-07 21:00:15 [INFO]: User Action
+2025-08-07 21:00:15 [INFO]: User Action
+2025-08-07 21:00:15 [INFO]: 用户学习进度更新: 6894a34ea9c359b6df8dd640, 学习0个单词
+2025-08-07 21:00:26 [INFO]: User Action
+2025-08-07 21:00:26 [INFO]: 用户学习进度更新: 6894a34ea9c359b6df8dd640, 学习10个单词
+2025-08-07 21:00:49 [INFO]: 服务器启动成功
+2025-08-07 21:00:49 [INFO]: 数据库连接成功

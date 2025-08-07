@@ -22,7 +22,7 @@ async function loadCet4WordsByInitial(initial) {
             // 使用流式读取大文件
             const data = fs.readFileSync(cet4Path, 'utf8');
             cet4Cache = JSON.parse(data);
-            console.log('CET-4.json 已加载到缓存');
+            console.log(`CET-4.json 已加载到${path.basename(__filename)}缓存`);
         }
 
         // 返回特定首字母的单词
@@ -248,4 +248,4 @@ function getMockData(word) {
 }
 
 
-module.exports = { router, getWordFromApi };
+module.exports = { router, getWordFromApi, loadCet4WordsByInitial };

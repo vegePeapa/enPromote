@@ -31,6 +31,14 @@ let userSchema = new mongoose.Schema({
             default: Date.now
         }
     },
+    planReviweWords: {
+        type: Number,
+        default: 0
+    },
+    planStudyWords: {
+        type: Number,
+        default: 0
+    },
     createTime: {
         type: Date,
         default: Date.now
