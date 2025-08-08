@@ -18,3 +18,6 @@
     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
     at async Promise.all (index 0)
     at async C:\Users\86177\Desktop\BBBBig\server\router\commendWords.js:27:15
+2025-08-08 15:50:38 [ERROR]: TypeError: Assignment to constant variable.
+    at C:\Users\86177\Desktop\BBBBig\server\router\commendWords.js:26:15
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)

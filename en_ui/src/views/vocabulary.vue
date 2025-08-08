@@ -175,6 +175,8 @@ const loadStatistics = async () => {
   try {
     // 获取复习单词数量
     const reviewRes = await getReviewWord();
+    console.log('reviewRes:', reviewRes);
+
     if (reviewRes.data.code === 200) {
       reviewWords.value = reviewRes.data.data || [];
       totalReviewWords.value = reviewWords.value.length;
@@ -254,14 +256,14 @@ async function loadReviewList() {
     console.log('review=', response);
 
     // 检查是否有复习单词
-    if (!response.data || response.data.length === 0) {
+    if (!response.data.words || response.data.wordListLen === 0) {
       alert('暂无需要复习的单词！');
       currentMode.value = 'select'; // 返回选择模式
       return;
     }
 
-    // 限制每次复习最多10个单词
-    words.value = response.data.slice(0, 10);
+
+    words.value = response.data.words;
     currentIndex.value = 0;
     studyStartTime.value = new Date(); // 记录开始时间
     completedWordsCount.value = 0; // 重置完成单词数

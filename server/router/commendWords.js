@@ -17,34 +17,36 @@ router.get('/getReviewWord', async (req, res) => {
         });
     }
     const user = await User.findById(userid);
-    const reviewLimit = user?.planReviweWords || 10; // 默认10个单词
+    const reviewLimit = user?.planReviweWords || 10;
+    console.log(`reviewLimit=${reviewLimit}`);
     const userWords = await UserWord
         .find({ userId: userid })
         .sort({ priority: -1 })
         .limit(reviewLimit);
+    const wordDate = await Promise.all(userWords.map(async data => {
+        // 使用 findById 或 findOne 而不是 find，因为 find 返回数组
+        const wordObj = await Words.findById(data['wordId']);
 
+        if (!wordObj) {
+            console.log(`/getReviewWord:未找到单词ID: ${data['wordId']}`);
+            return null; // 或者返回默认值
+        }
+        // console.log('找到单词:', wordObj.word);
+        // 返回包含单词和中文释义的对象
+        return {
+            word: wordObj.word,
+            mean: wordObj.chineseMeaning || '', // 使用数据库中的chineseMeaning字段
+            phonetic_symbol: wordObj.phonetics && wordObj.phonetics[0] ? wordObj.phonetics[0].text : '',
+            initial: wordObj.word.charAt(0).toUpperCase()
+        };
+    })
+    );
     res.json({
         code: 200,
-        data: await Promise.all(userWords.map(async data => {
-            // 使用 findById 或 findOne 而不是 find，因为 find 返回数组
-            const wordObj = await Words.findById(data['wordId']);
-
-            if (!wordObj) {
-                console.log(`未找到单词ID: ${data['wordId']}`);
-                return null; // 或者返回默认值
-            }
-
-            console.log('找到单词:', wordObj.word);
-
-            // 返回包含单词和中文释义的对象
-            return {
-                word: wordObj.word,
-                mean: wordObj.chineseMeaning || '', // 使用数据库中的chineseMeaning字段
-                phonetic_symbol: wordObj.phonetics && wordObj.phonetics[0] ? wordObj.phonetics[0].text : '',
-                initial: wordObj.word.charAt(0).toUpperCase()
-            };
-        })
-        ).then(results => results.filter(item => item !== null)) // 过滤掉null值
+        data: {
+            words: wordDate.filter(item => item !== null),
+            wordListLen: wordDate.filter(item => item !== null).length,
+        }
     });
 })
 

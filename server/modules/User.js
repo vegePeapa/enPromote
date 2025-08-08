@@ -18,6 +18,10 @@ let userSchema = new mongoose.Schema({
             type: Date,
             default: Date.now
         },
+        learnedWords: {
+            type: Number,
+            default: 0
+        },
         todayStudiedWords: {
             type: Number,
             default: 0

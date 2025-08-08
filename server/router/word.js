@@ -73,9 +73,13 @@ router.get('/getWordList', async (req, res) => {
         // 获取对应字母下的单词列表
         const wordList = vocabulary[letter];
 
-        // 确定返回的单词范围（每次返回10个单词）
+        // 确定返回的单词范围planStudyWord
+        const user = await User.findOne({ _id: req.session.userid });
+        const planStudyWord = user?.planStudyWords || 10; // 注意字段名是planStudyWords，默认10个
+        console.log(`planStudyWord=${planStudyWord}`);
+
         const startIdx = index ? parseInt(index) : 0;
-        const endIdx = Math.min(startIdx + 10, wordList.length);
+        const endIdx = Math.min(startIdx + planStudyWord, wordList.length);
 
         // 检查索引是否大于词汇表长度，如果大于则更新用户进度
         if (startIdx >= wordList.length) {
@@ -100,6 +104,7 @@ router.get('/getWordList', async (req, res) => {
             code: 200,
             data: {
                 words: wordsToReturn,
+                wordListLen: wordsToReturn.length,
                 total: wordList.length,
                 currentIndex: startIdx,
                 hasMore: endIdx < wordList.length
