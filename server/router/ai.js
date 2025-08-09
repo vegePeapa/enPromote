@@ -28,8 +28,8 @@ router.post('/aiChat', async (req, res) => {
         res.setHeader("Cache-Control", "no-cache");
         res.setHeader("Connection", "keep-alive");
 
-        const { message: newMsg, sence } = req.body;
-        console.log('sence:', sence);
+        const { message: newMsg, scene, character } = req.body;
+        console.log('scene:', scene);
         // 正确使用await查询数据库
         let conversation = await Conver.findOne({ userid: userid });
 
@@ -43,7 +43,7 @@ router.post('/aiChat', async (req, res) => {
         }
 
         // 正确处理async函数调用
-        const result = await aiChat(newMsg, conversation.message, userid, res);
+        const result = await aiChat(newMsg, scene, character, conversation.message, userid, res);
 
 
     } catch (err) {
@@ -56,7 +56,7 @@ router.post('/aiChat', async (req, res) => {
 })
 
 
-async function aiChat(message, history, userid, res) {
+async function aiChat(message, scene, character, history, userid, res) {
     try {
         // 确保history是数组
         const historyArray = Array.isArray(history) ? history : [];
@@ -64,7 +64,8 @@ async function aiChat(message, history, userid, res) {
         const completion = await openai.chat.completions.create({
             messages: [
                 {
-                    role: "system", content: `你是ai英语助手,当前用户ID为${userid}.当前时间为${new Date().toLocaleString()}` +
+                    role: "system", content: `你是模拟角色和用户进行英文对话的AI,当前用户ID为${userid}.当前时间为${new Date().toLocaleString()}` +
+                        `\n用户选择的场景为${scene},你的角色为${character}` +
                         '\n 安全规则:1.不要暴露其他用户数据2.不讨论违法内容'
                 },
                 // 保留最近10次对话记录

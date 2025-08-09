@@ -23,9 +23,9 @@ const router = createRouter({
             component: () => import('../views/vocabulary.vue'),
         },
         {
-            path: '/grammar',
-            name: 'Grammar',
-            component: () => import('../views/home.vue'), // 暂时指向首页，后续开发
+            path: '/aiChatExer',
+            name: 'aiChat',
+            component: () => import('../views/aiChatExer.vue'), // 暂时指向首页，后续开发
         },
         {
             path: '/reading',

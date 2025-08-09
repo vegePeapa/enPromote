@@ -4,6 +4,15 @@ let conversationSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    character: {
+        type: String,
+        default: 'general'
+    }
+    ,
+    scene: {
+        type: String,
+        default: 'general'
+    },
     message: [{
         role: String,
         content: String
