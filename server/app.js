@@ -13,6 +13,7 @@ const authRouter = require('./router/auth');
 const wordRouter = require('./router/word');
 const commendWordsRouter = require('./router/commendWords');
 const logsRouter = require('./router/logs');
+const aiRouter = require('./router/ai');
 db(() => {
     logger.info('数据库连接成功');
 });
@@ -85,29 +86,12 @@ app.use('/word', getwordRouter, wordRouter);
 app.use('/auth', authRouter);
 app.use('/commendWords', commendWordsRouter);
 app.use('/logs', logsRouter);
+app.use('/aiApi', aiRouter);
 
 app.listen(port, host, () => {
     console.log(`Dev_server is running on http://${host}:${port}`);
 });
 
-// 生成CET-4词汇表
-// function productCET4() {
-//     if (fs.existsSync(path.join(__dirname, 'vocabulary/CET-4.json'))) {
-//         return
-//     }
-//     const targetFile = path.join(__dirname, 'vocabulary/CET-4.json');
-//     let vocabularyObj = {}
-//     for (let i = 65; i < 91; i++) {
-//         const letter = String.fromCharCode(i);
-//         vocabularyObj[letter] = []
-//         const word = JSON.parse(fs.readFileSync(path.join(__dirname, 'vocabulary/CET-4/Vocabulary-of-CET-4/JSON/', String.fromCharCode(i) + '.json'), 'utf-8'));
-//         word.forEach(item => {
-//             vocabularyObj[letter].push(item.word)
-//         })
-//     }
-
-//     fs.writeFileSync(targetFile, JSON.stringify(vocabularyObj, null, 2));
-// }
 
 // 全局错误处理中间件
 app.use((err, req, res, next) => {
