@@ -16,9 +16,23 @@
                 <label>AI角色:</label>
                 <select v-model="character">
                     <option value="teacher">英语老师</option>
-                    <option value="friend">朋友</option>
-                    <option value="colleague">同事</option>
-                    <option value="guide">导游</option>
+                </select>
+            </div>
+
+            <div class="setting-item">
+                <label>AI性格:</label>
+                <select v-model="nature">
+                    <option value="blunt">脾气火爆</option>
+                    <option value="gentle">彬彬有礼</option>
+                    <option value="tsundere">傲娇毒舌</option>
+                    <option value="cold">高冷精英</option>
+                    <option value="exaggerated">夸张幽默</option>
+                </select>
+            </div>
+            <div class="setting-item">
+                <label>单词:</label>
+                <select v-model="model">
+                    <option value="review">复习单词</option>
                 </select>
             </div>
         </div>
@@ -27,7 +41,10 @@
         <div class="chat-messages" ref="messagesContainer">
             <div v-for="msg in messages" :key="msg.id"
                 :class="['message', msg.role === 'user' ? 'user-message' : 'ai-message']">
-                <div class="message-content">{{ msg.content }}</div>
+                <div class="message-content">
+                    <pre class="message-text">{{ msg.content }}</pre>
+                    <span v-if="msg.streaming" class="typing-indicator">▋</span>
+                </div>
                 <div class="message-time">{{ formatTime(msg.timestamp) }}</div>
             </div>
         </div>
@@ -44,11 +61,12 @@
 
 <script setup>
 import { ref, nextTick } from 'vue'
-import axios from 'axios'
 
 // 响应式数据
 const scene = ref('daily')
 const character = ref('teacher')
+const nature = ref('gentle')
+const model = ref('review')
 const inputMessage = ref('')
 const messages = ref([])
 const loading = ref(false)
@@ -68,35 +86,86 @@ const sendMessage = async () => {
         timestamp: new Date()
     })
 
+    // 添加AI消息占位符
+    const aiMessageId = Date.now() + 1
+    messages.value.push({
+        id: aiMessageId,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date(),
+        streaming: true
+    })
+
     inputMessage.value = ''
     loading.value = true
 
     try {
-        const response = await axios.post('/aiApi/aiChat', {
-            message: userMessage,
-            scene: scene.value,
-            character: character.value
+        // 使用fetch处理SSE流式响应
+        const response = await fetch('api/aiApi/aiChat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: userMessage,
+                scene: scene.value,
+                character: character.value,
+                nature: nature.value,
+                model: model.value
+            })
         })
 
-        if (response.data.code === 200) {
-            // 添加AI回复
-            messages.value.push({
-                id: Date.now() + 1,
-                role: 'assistant',
-                content: response.data.data.reply,
-                timestamp: new Date()
-            })
-        } else {
-            throw new Error(response.data.message)
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
         }
+
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+
+        while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+
+            const chunk = decoder.decode(value)
+            const lines = chunk.split('\n')
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = line.slice(6)
+                    if (data === '[DONE]') {
+                        // 流结束
+                        const aiMessage = messages.value.find(msg => msg.id === aiMessageId)
+                        if (aiMessage) {
+                            aiMessage.streaming = false
+                        }
+                        break
+                    }
+
+                    try {
+                        const parsed = JSON.parse(data)
+                        if (parsed.content) {
+                            // 更新AI消息内容
+                            const aiMessage = messages.value.find(msg => msg.id === aiMessageId)
+                            if (aiMessage) {
+                                aiMessage.content += parsed.content
+                                scrollToBottom()
+                            }
+                        }
+                    } catch (e) {
+                        // 忽略解析错误
+                    }
+                }
+            }
+        }
+
     } catch (error) {
         console.error('发送消息失败:', error)
-        messages.value.push({
-            id: Date.now() + 1,
-            role: 'assistant',
-            content: '抱歉，发生了错误，请稍后重试。',
-            timestamp: new Date()
-        })
+        // 更新AI消息为错误提示
+        const aiMessage = messages.value.find(msg => msg.id === aiMessageId)
+        if (aiMessage) {
+            aiMessage.content = '抱歉，发生了错误，请稍后重试。'
+            aiMessage.streaming = false
+        }
     } finally {
         loading.value = false
         scrollToBottom()
@@ -187,6 +256,16 @@ const formatTime = (timestamp) => {
     border: 1px solid #ddd;
 }
 
+/* 消息文本样式 */
+.message-text {
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    line-height: 1.4;
+}
+
 .message-time {
     font-size: 12px;
     color: #666;
@@ -226,5 +305,25 @@ const formatTime = (timestamp) => {
 .chat-input button:disabled {
     background: #ccc;
     cursor: not-allowed;
+}
+
+/* 打字指示器 */
+.typing-indicator {
+    animation: blink 1s infinite;
+    color: #007bff;
+    font-weight: bold;
+}
+
+@keyframes blink {
+
+    0%,
+    50% {
+        opacity: 1;
+    }
+
+    51%,
+    100% {
+        opacity: 0;
+    }
 }
 </style>
