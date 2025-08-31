@@ -15,7 +15,8 @@ let conversationSchema = new mongoose.Schema({
     },
     message: [{
         role: String,
-        content: String
+        content: String,
+        timestamp: Date
     }],
     createTime: {
         type: Date,

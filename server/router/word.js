@@ -144,7 +144,7 @@ router.post('/updateWordProgress', async (req, res) => {
         let index = user.cet4.position.split(':')[1];
         index = parseInt(index) + studyWords;
         user.cet4.position = `${letter}:${index}`;
-
+        user.totalWords += studyWords;
         // 更新学习统计
         const today = new Date();
         today.setHours(0, 0, 0, 0);

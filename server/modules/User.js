@@ -35,6 +35,10 @@ let userSchema = new mongoose.Schema({
             default: Date.now
         }
     },
+    totalWords: {
+        type: Number,
+        default: 0
+    },
     planReviweWords: {
         type: Number,
         default: 0

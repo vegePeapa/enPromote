@@ -179,7 +179,6 @@ const loadStatistics = async () => {
 
     if (reviewRes.data.code === 200) {
       reviewWords.value = reviewRes.data.data || [];
-      totalReviewWords.value = reviewWords.value.length;
     }
 
     // 重新获取用户信息以获取最新的统计数据
@@ -187,6 +186,7 @@ const loadStatistics = async () => {
     if (userRes.status === 200) {
       todayStudiedWords.value = userRes.data.todayWords || 0;
       streakDays.value = userRes.data.streakDays || 0;
+      totalReviewWords.value = userRes.data.totalWords || 0;
     }
   } catch (error) {
     console.error('加载统计数据失败:', error);

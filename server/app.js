@@ -60,7 +60,7 @@ function globalMiddleware_isLogin(req, res, next) {
         ))) {
         return next();
     } else {
-        if (req.session.isLogin) {
+        if (req.session.isLogin && req.session.userid) {
             next();
         } else {
             return res.status(401).json({

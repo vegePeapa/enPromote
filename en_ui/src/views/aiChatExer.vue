@@ -2,15 +2,7 @@
     <div class="ai-chat-container">
         <!-- 设置区域 -->
         <div class="chat-settings">
-            <div class="setting-item">
-                <label>场景:</label>
-                <select v-model="scene">
-                    <option value="daily">日常对话</option>
-                    <option value="business">商务英语</option>
-                    <option value="travel">旅游英语</option>
-                    <option value="study">学习讨论</option>
-                </select>
-            </div>
+
 
             <div class="setting-item">
                 <label>AI角色:</label>
@@ -61,9 +53,10 @@
 
 <script setup>
 import { ref, nextTick } from 'vue'
+import { getHistoryMessages } from '@/api/ai';
 
 // 响应式数据
-const scene = ref('daily')
+
 const character = ref('teacher')
 const nature = ref('gentle')
 const model = ref('review')
@@ -71,6 +64,19 @@ const inputMessage = ref('')
 const messages = ref([])
 const loading = ref(false)
 const messagesContainer = ref(null)
+// 获取历史记录
+const getHistory = async () => {
+    try {
+        const response = await getHistoryMessages()
+        messages.value = response.data.data
+
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+getHistory()
+
 
 // 发送消息
 const sendMessage = async () => {
@@ -108,7 +114,6 @@ const sendMessage = async () => {
             },
             body: JSON.stringify({
                 message: userMessage,
-                scene: scene.value,
                 character: character.value,
                 nature: nature.value,
                 model: model.value

@@ -117,7 +117,8 @@ router.get('/info', async (req, res) => {
             creatTime: user.createTime,
             cet4: user.cet4,
             todayWords: todayWords,
-            streakDays: streakDays
+            streakDays: streakDays,
+            totalWords: user.totalWords
         });
     } catch (error) {
         logApiError(req, error, 500);
