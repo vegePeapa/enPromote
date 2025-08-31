@@ -27,6 +27,13 @@
                     <option value="review">复习单词</option>
                 </select>
             </div>
+            <div class="setting-item">
+                <label>全英语</label>
+                <select v-model="useEnglish">
+                    <option value=false>no</option>
+                    <option value=true>yes</option>
+                </select>
+            </div>
         </div>
 
         <!-- 聊天区域 -->
@@ -43,10 +50,14 @@
 
         <!-- 输入区域 -->
         <div class="chat-input">
-            <input v-model="inputMessage" @keyup.enter="sendMessage" placeholder="输入你的消息..." :disabled="loading" />
+            <input v-model="inputMessage" @keyup.enter="sendMessage" @input="validateEnglishInput" @paste="handlePaste"
+                placeholder="Please type in English only..." :disabled="loading" class="english-only-input" />
             <button @click="sendMessage" :disabled="loading || !inputMessage.trim()">
                 {{ loading ? '发送中...' : '发送' }}
             </button>
+            <div v-if="showInputWarning" class="input-warning">
+                ⚠️ 请只使用英文字符进行练习
+            </div>
         </div>
     </div>
 </template>
@@ -60,10 +71,12 @@ import { getHistoryMessages } from '@/api/ai';
 const character = ref('teacher')
 const nature = ref('gentle')
 const model = ref('review')
+const useEnglish = ref(false)
 const inputMessage = ref('')
 const messages = ref([])
 const loading = ref(false)
 const messagesContainer = ref(null)
+const showInputWarning = ref(false)
 // 获取历史记录
 const getHistory = async () => {
     try {
@@ -117,7 +130,8 @@ const sendMessage = async () => {
                 message: userMessage,
                 character: character.value,
                 nature: nature.value,
-                model: model.value
+                model: model.value,
+                useEnglish: useEnglish.value
             })
         })
 
@@ -184,6 +198,55 @@ const scrollToBottom = () => {
         if (messagesContainer.value) {
             messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
         }
+    })
+}
+
+// 英文输入验证
+const validateEnglishInput = (event) => {
+    const value = event.target.value
+    // 正则表达式：只允许英文字母、数字、标点符号、空格
+    const englishOnlyRegex = /^[a-zA-Z0-9\s.,!?;:'"()\-_@#$%^&*+=<>{}[\]|\\\/~`]*$/
+
+    if (!englishOnlyRegex.test(value)) {
+        // 移除非英文字符
+        const filteredValue = value.replace(/[^a-zA-Z0-9\s.,!?;:'"()\-_@#$%^&*+=<>{}[\]|\\\/~`]/g, '')
+        inputMessage.value = filteredValue
+
+        // 显示警告
+        showInputWarning.value = true
+        setTimeout(() => {
+            showInputWarning.value = false
+        }, 3000)
+    }
+}
+
+// 处理粘贴事件
+const handlePaste = (event) => {
+    event.preventDefault()
+    const pastedText = (event.clipboardData || window.clipboardData).getData('text')
+
+    // 过滤非英文字符
+    const englishOnlyRegex = /[a-zA-Z0-9\s.,!?;:'"()\-_@#$%^&*+=<>{}[\]|\\\/~`]/g
+    const filteredText = pastedText.match(englishOnlyRegex)?.join('') || ''
+
+    if (filteredText !== pastedText) {
+        showInputWarning.value = true
+        setTimeout(() => {
+            showInputWarning.value = false
+        }, 3000)
+    }
+
+    // 插入过滤后的文本
+    const input = event.target
+    const start = input.selectionStart
+    const end = input.selectionEnd
+    const currentValue = inputMessage.value
+
+    inputMessage.value = currentValue.substring(0, start) + filteredText + currentValue.substring(end)
+
+    // 设置光标位置
+    nextTick(() => {
+        input.setSelectionRange(start + filteredText.length, start + filteredText.length)
     })
 }
 
@@ -311,6 +374,46 @@ const formatTime = (timestamp) => {
 .chat-input button:disabled {
     background: #ccc;
     cursor: not-allowed;
+}
+
+/* 英文输入限制样式 */
+.english-only-input {
+    border: 1px solid #ddd;
+    transition: border-color 0.3s ease;
+}
+
+.english-only-input:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+.input-warning {
+    position: absolute;
+    bottom: -30px;
+    left: 15px;
+    background: #ff6b6b;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    animation: slideIn 0.3s ease;
+    z-index: 10;
+}
+
+.chat-input {
+    position: relative;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* 打字指示器 */

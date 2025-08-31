@@ -18,6 +18,10 @@ let conversationSchema = new mongoose.Schema({
         content: String,
         timestamp: Date
     }],
+    engilsh: {
+        type: Boolean,
+        default: false
+    },
     createTime: {
         type: Date,
         default: Date.now

@@ -62,7 +62,7 @@ router.post('/aiChat', async (req, res) => {
         res.setHeader("Cache-Control", "no-cache");
         res.setHeader("Connection", "keep-alive");
         // character 为角色，nature 性格
-        const { message: newMsg, nature, model } = req.body;
+        const { message: newMsg, nature, model, useEnglish } = req.body;
         let { character } = req.body;
         switch (character) {
             case ('teacher'):
@@ -108,7 +108,7 @@ router.post('/aiChat', async (req, res) => {
         }
 
         // 正确处理async函数调用
-        const result = await aiChat(newMsg, character, conversation.message, userid, res, word_list);
+        const result = await aiChat(newMsg, character, conversation.message, userid, res, word_list, useEnglish);
 
 
     } catch (err) {
@@ -120,7 +120,7 @@ router.post('/aiChat', async (req, res) => {
     }
 })
 
-async function aiChat(message, character, history, userid, res, word_list) {
+async function aiChat(message, character, history, userid, res, word_list, useEn) {
     try {
         // 确保history是数组
         const historyArray = Array.isArray(history) ? history : [];
@@ -131,17 +131,18 @@ async function aiChat(message, character, history, userid, res, word_list) {
                     role: "system", content: `你是模拟角色和用户进行英文对话的AI,当前用户ID为${userid}.当前时间为${new Date().toLocaleString()}` +
                         `\n用户自定义选项:
                             1. 你的角色为${character}
-                            2. 必须使用用户需要练习的单词：${word_list.join(',')}
+                            2. 必须使用的重点单词improtantList=${word_list.join(',')}
                             3. 单词使用规则(强制要求):
-                            - 每轮对话使用1-3个练习单词
-                            - 禁止使用超过3个练习单词
+                            - 每轮对话使用2-4个练习单词
+                            - 禁止使用超过4个练习单词
                             - 重复单词不算作多个使用
-                            - 响应结束后在括号内标注已用单词数 例如 (已用:2)
+                            - 响应结束后在括号内标注已用的improtantList 例如 (已用:2)
                             4. 对话尽量简洁
                             5. 安全规则:
                             - 不要暴露其他用户数据如userid
                             - 不讨论违法内容
-                            6. 违规惩罚：若违反单词限制，将自动终止对话`
+                            6.用户useEnglish为${useEn},如果为true,则必须使用英文对话,如果为false,将improtantList中的英文单词衔接在中文对话中
+                            7. 违规惩罚：若违反单词限制，将自动终止对话`
                 },
                 // 保留最近7次问答记录
                 ...historyArray.slice(-14).map(item => ({
