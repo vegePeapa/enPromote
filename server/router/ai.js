@@ -250,6 +250,7 @@ router.get('/history_messages', async (req, res) => {
         const messages = conversation.message.map(item => item.role === 'user' || ' assistant' ? ({
             role: item.role,
             content: item.content,
+            timestamp: item.timestamp
         }) : null).filter(item => item !== null);
         res.json({
             code: 200,

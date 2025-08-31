@@ -69,6 +69,7 @@ const getHistory = async () => {
     try {
         const response = await getHistoryMessages()
         messages.value = response.data.data
+        console.log(messages.value);
 
     } catch (err) {
         console.log(err);
