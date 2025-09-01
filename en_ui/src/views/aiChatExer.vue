@@ -34,6 +34,7 @@
                     <option value=true>yes</option>
                 </select>
             </div>
+            <button @click="restart">重置会话</button>
         </div>
 
         <!-- 聊天区域 -->
@@ -64,7 +65,7 @@
 
 <script setup>
 import { ref, nextTick } from 'vue'
-import { getHistoryMessages } from '@/api/ai';
+import { getHistoryMessages, restartConversation } from '@/api/ai';
 
 // 响应式数据
 
@@ -77,6 +78,21 @@ const messages = ref([])
 const loading = ref(false)
 const messagesContainer = ref(null)
 const showInputWarning = ref(false)
+// 重置
+const restart = async () => {
+    try {
+        const respose = await restartConversation()
+        if (respose.data.code == 200) {
+            alert('会话已重置')
+        }
+        messages.value = []
+    } catch (err) {
+        console.log(err);
+
+    }
+
+
+}
 // 获取历史记录
 const getHistory = async () => {
     try {

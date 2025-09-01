@@ -119,6 +119,50 @@ router.post('/aiChat', async (req, res) => {
         });
     }
 })
+router.get('/history_messages', async (req, res) => {
+    try {
+        const userid = req.session.userid;
+        const conversation = await Conver.findOne({ userid: userid });
+        if (!conversation) {
+            return res.json({
+                code: 200,
+                data: []
+            });
+        }
+        const messages = conversation.message.map(item => item.role === 'user' || ' assistant' ? ({
+            role: item.role,
+            content: item.content,
+            timestamp: item.timestamp
+        }) : null).filter(item => item !== null);
+        res.json({
+            code: 200,
+            data: messages
+        });
+
+    }
+    catch (err) {
+        res.status(500).json({
+            code: 500,
+            message: '服务器内部错误'
+        });
+        console.log(`ai获取历史消息错误${err}`);
+    }
+})
+router.post('/restartConversation', async (req, res) => {
+    try {
+        const userid = req.session.userid;
+        await Conver.deleteOne({ userid: userid });
+        res.json({
+            code: 200,
+            message: '会话已重置'
+        });
+    } catch (err) {
+        console.log(`ai重置会话错误${err}`);
+    }
+
+})
+
+
 
 async function aiChat(message, character, history, userid, res, word_list, useEn) {
     try {
@@ -136,7 +180,6 @@ async function aiChat(message, character, history, userid, res, word_list, useEn
                             - 每轮对话使用2-4个练习单词
                             - 禁止使用超过4个练习单词
                             - 重复单词不算作多个使用
-                            - 响应结束后在括号内标注已用的improtantList 例如 (已用:2)
                             4. 对话尽量简洁
                             5. 安全规则:
                             - 不要暴露其他用户数据如userid
@@ -219,16 +262,20 @@ async function summarizeConversation(userid) {
             const completion = await openai.chat.completions.create({
                 messages: [
                     { role: "system", content: "请对下述对话做一个简单的摘要,保留关键信息" },
-                    { role: "user", content: conversation.slice(-14).map(item => item.content).join('\n') }
+                    { role: "user", content: conversation.message.slice(-14).map(item => item.content).join('\n') }
                 ],
                 model: "deepseek-chat",
                 stream: false
             });
-            console.log(`摘要:${completion}`)
-            // 保存摘要
-            conversation.push({
+
+            // 从completion中提取实际的摘要文本
+            const summaryText = completion.choices[0].message.content;
+            console.log(`摘要: ${summaryText}`);
+
+            // 保存摘要文本
+            conversation.message.push({
                 role: 'system',
-                content: completion,
+                content: summaryText,
                 timestamp: new Date()
             })
             await conversation.save()
@@ -238,34 +285,6 @@ async function summarizeConversation(userid) {
     }
 }
 
-router.get('/history_messages', async (req, res) => {
-    try {
-        const userid = req.session.userid;
-        const conversation = await Conver.findOne({ userid: userid });
-        if (!conversation) {
-            return res.json({
-                code: 200,
-                data: []
-            });
-        }
-        const messages = conversation.message.map(item => item.role === 'user' || ' assistant' ? ({
-            role: item.role,
-            content: item.content,
-            timestamp: item.timestamp
-        }) : null).filter(item => item !== null);
-        res.json({
-            code: 200,
-            data: messages
-        });
 
-    }
-    catch (err) {
-        res.status(500).json({
-            code: 500,
-            message: '服务器内部错误'
-        });
-        console.log(`ai获取历史消息错误${err}`);
-    }
-})
 
 module.exports = router;
