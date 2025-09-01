@@ -42,6 +42,12 @@ const router = createRouter({
             name: 'Text',
             component: () => import('../views/text.vue'),
         },
+        {
+            path: '/profile',
+            name: 'Profile',
+            component: () => import('../views/profile.vue'),
+            meta: { requiresAuth: true }
+        },
     ]
 })
 export default router

@@ -162,8 +162,6 @@ router.post('/restartConversation', async (req, res) => {
 
 })
 
-
-
 async function aiChat(message, character, history, userid, res, word_list, useEn) {
     try {
         // 确保history是数组

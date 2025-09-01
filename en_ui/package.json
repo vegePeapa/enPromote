@@ -12,7 +12,11 @@
     "lint": "eslint . --fix"
   },
   "dependencies": {
-    "vue": "^3.5.13"
+    "@vueuse/core": "^13.8.0",
+    "axios": "^1.11.0",
+    "vue": "^3.5.13",
+    "vue-click-outside": "^1.1.0",
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.1",

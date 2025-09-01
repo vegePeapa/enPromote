@@ -8,7 +8,7 @@
           <ul>
             <li><router-link to="/" class="active">首页</router-link></li>
             <li><router-link to="/vocabulary">词汇练习</router-link></li>
-            <li><router-link to="/aiChatExer">ai对话训练</router-link></li>
+            <li><router-link to="/aiChatExer">AI对话</router-link></li>
             <li><router-link to="/reading">阅读理解</router-link></li>
             <li><router-link to="/listening">听力训练</router-link></li>
           </ul>
@@ -16,21 +16,54 @@
         <div class="user-actions">
           <router-link to="/login" class="btn-login" v-if="currentModule === 'unlogin'">登录</router-link>
           <router-link to="/register" class="btn-register" v-if="currentModule === 'unlogin'">注册</router-link>
-          <span class="username" v-if="currentModule === 'login'">你好!{{ username }}</span>
-          <button @click="Logout" class="btn-logout" v-if="currentModule === 'login'">退出登陆</button>
+          <div class="user-profile" v-if="currentModule === 'login'" ref="dropdownRef">
+            <div class="avatar-container" @click="toggleDropdown">
+              <img :src="userAvatar" alt="用户头像" class="avatar" />
+              <span class="username">{{ username }}</span>
+            </div>
+            <div class="dropdown-menu" v-show="showDropdown">
+              <router-link to="/profile" class="dropdown-item">个人主页</router-link>
+              <div class="dropdown-divider"></div>
+              <button @click="Logout" class="dropdown-item">退出登录</button>
+            </div>
+          </div>
         </div>
       </header>
     </template>
 
 <script setup>
 import '@/assets/css/home_head.css'
+import '@/assets/css/header.css'
 import { ref } from 'vue'
 import { logout, getUserInfo } from '@/api/auth'
 import { useRouter } from 'vue-router'
+import { onMounted, onUnmounted } from 'vue'
+import { onClickOutside } from '@vueuse/core'
+
 const router = useRouter()
 // 当前模块：unlogin（未登录）, login（已登录）
 const currentModule = ref('unlogin')
 const username = ref('')
+const userAvatar = ref('/default-avatar.png') // 默认头像
+const showDropdown = ref(false)
+const dropdownRef = ref(null) // 用于点击外部检测的ref
+
+// 使用vueuse的onClickOutside功能
+onClickOutside(dropdownRef, () => {
+  showDropdown.value = false
+})
+
+// 点击头像切换下拉菜单
+const toggleDropdown = () => {
+  showDropdown.value = !showDropdown.value
+}
+
+// 点击外部关闭下拉菜单
+const closeDropdown = () => {
+  showDropdown.value = false
+}
+
+// 点击外部关闭的处理已经由 onClickOutside 接管
 
 getUserInfo().then(res => {
 
