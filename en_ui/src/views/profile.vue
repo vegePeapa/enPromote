@@ -39,7 +39,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getUserInfo } from '@/api/auth'
+import { getUserInfo, changeInfo } from '@/api/auth'
 
 const username = ref('')
 const userAvatar = ref('/default-avatar.png') // 默认头像

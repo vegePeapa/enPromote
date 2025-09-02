@@ -12,5 +12,8 @@ function logout() {
 function getUserInfo() {
     return request.get('/auth/info');
 }
+function changeInfo(data) {
+    return request.post('/auth/changeinfo', data);
+}
 
-export { login, register, logout, getUserInfo };
+export { login, register, logout, getUserInfo, changeInfo };

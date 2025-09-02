@@ -131,6 +131,11 @@ router.post('/changeinfo', async (req, res) => {
         if (!req.body) {
             return res.json({ code: 400, message: '请求体结构缺失' });
         }
+        const { username } = req.body;
+        const user = await User.findById({ username: username });
+        if (user) {
+            return res.json({ code: 400, message: '用户名已存在' });
+        }
         await User.findByIdAndUpdate(userid, { $set: req.body }, { new: true });
         res.json({ code: 200, message: '修改成功' });
 

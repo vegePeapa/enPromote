@@ -250,16 +250,16 @@ const loadWords = async () => {
         loading.value = true;
         const response = await getReviewWord();
         if (response.data.code === 200) {
-            const allWords = response.data.data;
+            const allWords = response.data.data.words;
+            console.log(allWords);
 
             // 检查是否有单词
             if (!allWords || allWords.length === 0) {
                 words.value = [];
+
                 return; // 不加载音频，让界面显示提示信息
             }
-
-            // 限制每轮最多20个单词
-            words.value = allWords.slice(0, 20);
+            words.value = allWords
             currentIndex.value = 0;
             await loadCurrentWordAudio();
         }
