@@ -175,14 +175,14 @@ async function aiChat(message, character, history, userid, res, word_list, useEn
                             1. 你的角色为${character}
                             2. 必须使用的重点单词improtantList=${word_list.join(',')}
                             3. 单词使用规则(强制要求):
-                            - 每轮对话使用2-4个练习单词
+                            - 每轮回答必须使用2-4个练习单词
                             - 禁止使用超过4个练习单词
                             - 重复单词不算作多个使用
                             4. 对话尽量简洁
                             5. 安全规则:
                             - 不要暴露其他用户数据如userid
                             - 不讨论违法内容
-                            6.用户useEnglish为${useEn},如果为true,则必须使用英文对话,如果为false,将improtantList中的英文单词衔接在中文对话中
+                            6.用户useEnglish为${useEn},如果为true,则必须使用英文对话,如果为false,除了improtantList中的单词必须使用中文对话
                             7. 违规惩罚：若违反单词限制，将自动终止对话`
                 },
                 // 保留最近7次问答记录

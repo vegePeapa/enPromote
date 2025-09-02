@@ -87,7 +87,6 @@ router.post('/logout', (req, res) => {
     }
 });
 
-
 router.get('/info', async (req, res) => {
     try {
         const { userid } = req.session;
@@ -125,4 +124,19 @@ router.get('/info', async (req, res) => {
         return res.json({ code: 500, message: '服务器内部错误' });
     }
 });
+
+router.post('/changeinfo', async (req, res) => {
+    try {
+        const { userid } = req.session;
+        if (!req.body) {
+            return res.json({ code: 400, message: '请求体结构缺失' });
+        }
+        await User.findByIdAndUpdate(userid, { $set: req.body }, { new: true });
+        res.json({ code: 200, message: '修改成功' });
+
+    } catch (err) {
+        console.log(err)
+        return res.json({ code: 500, message: '服务器内部错误' });
+    }
+})
 module.exports = router;

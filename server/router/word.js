@@ -159,17 +159,30 @@ router.post('/updateWordProgress', async (req, res) => {
             const yesterday = new Date(today);
             yesterday.setDate(yesterday.getDate() - 1);
 
-            if (lastStudyDate.getTime() === yesterday.getTime()) {
-                // 连续学习
-                user.cet4.streakDays = (user.cet4.streakDays || 0) + 1;
-            } else if (lastStudyDate.getTime() < yesterday.getTime()) {
-                // 中断了，重新开始
+            // 检查是否是第一次学习（lastStudyDate为默认值或很久以前）
+            const isFirstTime = !user.cet4.lastStudyDate ||
+                (today.getTime() - lastStudyDate.getTime()) > 7 * 24 * 60 * 60 * 1000; // 超过7天
+
+            if (isFirstTime) {
+                // 第一次学习或长时间未学习，重新开始
                 user.cet4.streakDays = 1;
+                console.log(`用户${userid}第一次学习或重新开始，连续天数重置为1`);
+            } else if (lastStudyDate.getTime() === yesterday.getTime()) {
+                // 连续学习（昨天学习了，今天继续）
+                const oldStreak = user.cet4.streakDays || 0;
+                user.cet4.streakDays = oldStreak + 1;
+                console.log(`用户${userid}连续学习，连续天数从${oldStreak}增加到${user.cet4.streakDays}`);
+            } else if (lastStudyDate.getTime() < yesterday.getTime()) {
+                // 中断了（上次学习是前天或更早），重新开始
+                const oldStreak = user.cet4.streakDays || 0;
+                user.cet4.streakDays = 1;
+                console.log(`用户${userid}学习中断，连续天数从${oldStreak}重置为1`);
             }
+            // 如果 lastStudyDate > yesterday，说明时间有问题，保持原值
 
             user.cet4.lastStudyDate = today;
         } else {
-            // 今天已经学习过，累加学习数量
+            // 今天已经学习过，累加学习数量（连续天数不变）
             user.cet4.todayStudiedWords = (user.cet4.todayStudiedWords || 0) + studyWords;
         }
 
