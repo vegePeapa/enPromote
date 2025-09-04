@@ -117,7 +117,9 @@ router.get('/info', async (req, res) => {
             cet4: user.cet4,
             todayWords: todayWords,
             streakDays: streakDays,
-            totalWords: user.totalWords
+            totalWords: user.totalWords,
+            planStudyWords: user.planStudyWords,
+            planReviweWords: user.planReviweWords
         });
     } catch (error) {
         logApiError(req, error, 500);
@@ -128,19 +130,93 @@ router.get('/info', async (req, res) => {
 router.post('/changeinfo', async (req, res) => {
     try {
         const { userid } = req.session;
-        if (!req.body) {
-            return res.json({ code: 400, message: '请求体结构缺失' });
+
+        if (!userid) {
+            return res.json({ code: 401, message: '请先登录' });
         }
-        const { username } = req.body;
-        const user = await User.findById({ username: username });
-        if (user) {
-            return res.json({ code: 400, message: '用户名已存在' });
+
+        if (!req.body || Object.keys(req.body).length === 0) {
+            return res.json({ code: 400, message: '请求体不能为空' });
         }
-        await User.findByIdAndUpdate(userid, { $set: req.body }, { new: true });
-        res.json({ code: 200, message: '修改成功' });
+
+        const { username, password, planStudyWords, planReviweWords } = req.body;
+        const updateData = {};
+
+        // 验证用户名
+        if (username !== undefined) {
+            if (!username || username.trim().length < 2) {
+                return res.json({ code: 400, message: '用户名至少需要2个字符' });
+            }
+
+            // 检查用户名是否已存在（排除当前用户）
+            const existingUser = await User.findOne({
+                username: username.trim(),
+                _id: { $ne: userid }
+            });
+
+            if (existingUser) {
+                return res.json({ code: 400, message: '用户名已存在' });
+            }
+
+            updateData.username = username.trim();
+        }
+
+        // 验证密码
+        if (password !== undefined) {
+            if (!password || password.length < 6) {
+                return res.json({ code: 400, message: '密码至少需要6个字符' });
+            }
+
+            updateData.password = password;
+        }
+
+        // 验证学习计划
+        if (planStudyWords !== undefined) {
+            const studyWords = parseInt(planStudyWords);
+            if (isNaN(studyWords) || studyWords < 1 || studyWords > 100) {
+                return res.json({ code: 400, message: '每日学习单词数应在1-100之间' });
+            }
+            updateData.planStudyWords = studyWords;
+        }
+
+        if (planReviweWords !== undefined) {
+            const reviewWords = parseInt(planReviweWords);
+            if (isNaN(reviewWords) || reviewWords < 1 || reviewWords > 50) {
+                return res.json({ code: 400, message: '每日复习单词数应在1-50之间' });
+            }
+            updateData.planReviweWords = reviewWords;
+        }
+
+        // 更新用户信息
+        const updatedUser = await User.findByIdAndUpdate(
+            userid,
+            { $set: updateData },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedUser) {
+            return res.json({ code: 404, message: '用户不存在' });
+        }
+
+        // 记录操作日志
+        logUserAction(req, 'UPDATE_USER_INFO', {
+            userId: userid,
+            updatedFields: Object.keys(updateData)
+        });
+
+        res.json({
+            code: 200,
+            message: '修改成功',
+            data: {
+                username: updatedUser.username,
+                planStudyWords: updatedUser.planStudyWords,
+                planReviweWords: updatedUser.planReviweWords
+            }
+        });
 
     } catch (err) {
-        console.log(err)
+        console.error('修改用户信息失败:', err);
+        logApiError(req, err, 500);
         return res.json({ code: 500, message: '服务器内部错误' });
     }
 })
