@@ -47,6 +47,10 @@ let userSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    question_completed: {
+        type: Boolean,
+        default: false
+    },
     createTime: {
         type: Date,
         default: Date.now
