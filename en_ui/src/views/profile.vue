@@ -52,12 +52,12 @@
                         <h4>学习计划</h4>
                         <div class="form-row">
                             <label>每日学习单词数:</label>
-                            <input v-model.number="editForm.planStudyWords" type="number" min="1" max="100"
+                            <input v-model.number="editForm.planStudyWords" type="number" min="10" max="100"
                                 placeholder="1-100" :disabled="loading" />
                         </div>
                         <div class="form-row">
                             <label>每日复习单词数:</label>
-                            <input v-model.number="editForm.planReviweWords" type="number" min="1" max="50"
+                            <input v-model.number="editForm.planReviweWords" type="number" min="10" max="50"
                                 placeholder="1-50" :disabled="loading" />
                         </div>
                     </div>

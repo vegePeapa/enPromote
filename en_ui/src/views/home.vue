@@ -8,7 +8,7 @@
       <section class="hero">
         <div class="hero-content">
           <h2>提升您的英语水平</h2>
-          <p>通过互动练习、实时反馈和个性化学习路径，让英语学习变得轻松有趣<br><span style="color: brown;">(暂不开放阅读理解)</span></p>
+          <p>通过互动练习、实时反馈和个性化学习路径，让英语学习变得轻松有趣<br><span style="color: brown;"></span></p>
           <button class="btn-primary" @click="goToVocabulary">立即开始</button>
         </div>
 

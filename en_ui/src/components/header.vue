@@ -9,7 +9,7 @@
             <li><router-link to="/" class="active">首页</router-link></li>
             <li><router-link to="/vocabulary">词汇练习</router-link></li>
             <li><router-link to="/aiChatExer">AI对话</router-link></li>
-            <li><router-link to="/reading">阅读理解</router-link></li>
+            <!-- <li><router-link to="/reading">阅读理解</router-link></li> -->
             <li><router-link to="/listening">听力训练</router-link></li>
           </ul>
         </nav>

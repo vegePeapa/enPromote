@@ -1,45 +1,19 @@
-const axios = require('axios');
+// Please install OpenAI SDK first: `npm install openai`
 
-async function testWordAPI() {
-    console.log('测试单词API...');
-    
-    try {
-        // 测试新的getWordInfo路由
-        console.log('测试 /word/getWordInfo 路由...');
-        const response = await axios.get('http://localhost:3000/word/getWordInfo', {
-            params: { word: 'hello' },
-            timeout: 20000
-        });
-        
-        console.log('响应状态:', response.status);
-        console.log('响应数据:', JSON.stringify(response.data, null, 2));
-        
-    } catch (error) {
-        console.error('测试失败:', error.message);
-        if (error.response) {
-            console.error('响应状态:', error.response.status);
-            console.error('响应数据:', error.response.data);
-        }
-    }
-    
-    try {
-        // 测试原有的getwordinfo路由
-        console.log('\n测试 /word/getwordinfo 路由...');
-        const response = await axios.get('http://localhost:3000/word/getwordinfo', {
-            params: { word: 'hello' },
-            timeout: 20000
-        });
-        
-        console.log('响应状态:', response.status);
-        console.log('响应数据:', JSON.stringify(response.data, null, 2));
-        
-    } catch (error) {
-        console.error('测试失败:', error.message);
-        if (error.response) {
-            console.error('响应状态:', error.response.status);
-            console.error('响应数据:', error.response.data);
-        }
-    }
+const OpenAI = require("openai");
+
+const openai = new OpenAI({
+    baseURL: 'https://api.deepseek.com',
+    apiKey: 'sk-2746233e02eb46ada9fe884e8d5678aa'
+});
+
+async function main() {
+    const completion = await openai.chat.completions.create({
+        messages: [{ role: "system", content: "You are a helpful assistant." }],
+        model: "deepseek-chat",
+    });
+
+    console.log(completion.choices[0].message.content);
 }
 
-testWordAPI();
+main();
