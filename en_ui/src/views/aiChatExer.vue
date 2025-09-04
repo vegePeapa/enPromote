@@ -42,7 +42,44 @@
                     </div>
                     <div class="guide-actions">
                         <button class="btn-secondary" @click="prevStep">上一步</button>
-                        <button class="btn-primary" :disabled="!selectedNature" @click="completeGuide">
+                        <button class="btn-primary" :disabled="!selectedNature" @click="nextStep">
+                            下一步
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 步骤3: 选择语言模式 -->
+                <div v-if="guideStep === 3" class="guide-step">
+                    <div class="guide-header">
+                        <h2>🌍 选择对话语言</h2>
+                        <p>选择你希望的对话语言模式</p>
+                    </div>
+                    <div class="language-options">
+                        <div class="language-card" :class="{ active: selectedUseEnglish === false }"
+                            @click="selectedUseEnglish = false">
+                            <div class="language-icon">🇨🇳</div>
+                            <h3>中英混合</h3>
+                            <p>AI会用中文解释，但会强调英文单词的使用</p>
+                            <div class="language-example">
+                                <span class="example-label">示例：</span>
+                                <span class="example-text">"你刚才用的 'beautiful' 这个词很棒！它比 'good' 更生动..."</span>
+                            </div>
+                        </div>
+                        <div class="language-card" :class="{ active: selectedUseEnglish === true }"
+                            @click="selectedUseEnglish = true">
+                            <div class="language-icon">🇺🇸</div>
+                            <h3>全英文模式</h3>
+                            <p>完全使用英文对话，提供沉浸式英语环境</p>
+                            <div class="language-example">
+                                <span class="example-label">Example：</span>
+                                <span class="example-text">"Great use of 'beautiful'! It's much more vivid than
+                                    'good'..."</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="guide-actions">
+                        <button class="btn-secondary" @click="prevStep">上一步</button>
+                        <button class="btn-primary" :disabled="selectedUseEnglish === null" @click="completeGuide">
                             开始对话
                         </button>
                     </div>
@@ -50,65 +87,134 @@
             </div>
         </div>
 
-        <!-- 设置区域 -->
+        <!-- 优化后的设置区域 -->
         <div class="chat-settings" v-show="!showGuideModal">
-
-
-            <div class="setting-item">
-                <label>AI角色:</label>
-                <select v-model="character">
-                    <option value="teacher">英语老师</option>
-                </select>
+            <div class="settings-header">
+                <h3>🤖 AI助手设置</h3>
+                <div class="settings-status">
+                    <span class="status-indicator online"></span>
+                    <span class="status-text">AI助手在线</span>
+                </div>
             </div>
 
-            <div class="setting-item">
-                <label>AI性格:</label>
-                <select v-model="nature">
-                    <option value="blunt">脾气火爆</option>
-                    <option value="gentle">彬彬有礼</option>
-                    <option value="tsundere">傲娇毒舌</option>
-                    <option value="cold">高冷精英</option>
-                    <option value="exaggerated">夸张幽默</option>
-                </select>
+            <div class="settings-content">
+                <div class="setting-group">
+                    <div class="setting-item">
+                        <label class="setting-label">
+                            <span class="label-icon">🎭</span>
+                            AI角色
+                        </label>
+                        <div class="custom-select">
+                            <select v-model="character">
+                                <option value="teacher">👨‍🏫 英语老师</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <label class="setting-label">
+                            <span class="label-icon">🎨</span>
+                            AI性格
+                        </label>
+                        <div class="custom-select">
+                            <select v-model="nature">
+                                <option value="gentle">😊 彬彬有礼</option>
+                                <option value="blunt">🔥 脾气火爆</option>
+                                <option value="tsundere">😤 傲娇毒舌</option>
+                                <option value="cold">❄️ 高冷精英</option>
+                                <option value="exaggerated">🎭 夸张幽默</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <label class="setting-label">
+                            <span class="label-icon">🌍</span>
+                            对话语言
+                        </label>
+                        <div class="language-toggle">
+                            <button class="toggle-btn" :class="{ active: !useEnglish }" @click="useEnglish = false">
+                                🇨🇳 中英混合
+                            </button>
+                            <button class="toggle-btn" :class="{ active: useEnglish }" @click="useEnglish = true">
+                                🇺🇸 全英文
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-actions">
+                    <button class="action-btn restart-btn" @click="restart">
+                        <span class="btn-icon">🔄</span>
+                        重置会话
+                    </button>
+                </div>
             </div>
-            <!-- 只有一个选项，所以不显示,其他功能后续再开发 -->
-            <div class="setting-item" v-show="false">
-                <label>单词:</label>
-                <select v-model="model">
-                    <option value="review">复习单词</option>
-                </select>
-            </div>
-            <div class="setting-item">
-                <label>全英语</label>
-                <select v-model="useEnglish">
-                    <option value=false>no</option>
-                    <option value=true>yes</option>
-                </select>
-            </div>
-            <button @click="restart">重置会话</button>
         </div>
 
-        <!-- 聊天区域 -->
+        <!-- 优化后的聊天区域 -->
         <div class="chat-messages" ref="messagesContainer">
+            <div v-if="messages.length === 0" class="welcome-message">
+                <div class="welcome-content">
+                    <div class="welcome-icon">💬</div>
+                    <h3>欢迎来到AI英语对话练习！</h3>
+                    <p>开始你的第一次对话吧，AI老师会帮助你提升英语水平</p>
+                    <div class="welcome-tips">
+                        <div class="tip-item">
+                            <span class="tip-icon">💡</span>
+                            <span>AI会根据你的水平调整对话难度</span>
+                        </div>
+                        <div class="tip-item">
+                            <span class="tip-icon">📚</span>
+                            <span>重点单词会在对话中自然出现</span>
+                        </div>
+                        <div class="tip-item">
+                            <span class="tip-icon">🎯</span>
+                            <span>每次对话都是学习的机会</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div v-for="msg in messages" :key="msg.id"
                 :class="['message', msg.role === 'user' ? 'user-message' : 'ai-message']">
-                <div class="message-content">
-                    <pre class="message-text">{{ msg.content }}</pre>
-                    <span v-if="msg.streaming" class="typing-indicator">▋</span>
+                <div class="message-avatar">
+                    <div v-if="msg.role === 'user'" class="avatar user-avatar">👤</div>
+                    <div v-else class="avatar ai-avatar">🤖</div>
                 </div>
-                <div class="message-time">{{ formatTime(msg.timestamp) }}</div>
+                <div class="message-bubble">
+                    <div class="message-content">
+                        <pre class="message-text">{{ msg.content }}</pre>
+                        <span v-if="msg.streaming" class="typing-indicator">
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </span>
+                    </div>
+                    <div class="message-time">{{ formatTime(msg.timestamp) }}</div>
+                </div>
             </div>
         </div>
 
-        <!-- 输入区域 -->
+        <!-- 优化后的输入区域 -->
         <div class="chat-input">
-            <input v-model="inputMessage" @keyup.enter="sendMessage" @input="validateEnglishInput" @paste="handlePaste"
-                placeholder="Please type in English only..." :disabled="loading" class="english-only-input" />
-            <button @click="sendMessage" :disabled="loading || !inputMessage.trim()">
-                {{ loading ? '发送中...' : '发送' }}
-            </button>
-            <div v-if="showInputWarning" class="input-warning">
-                ⚠️ 请只使用英文字符进行练习
+            <div class="input-container">
+                <div class="input-wrapper">
+                    <input v-model="inputMessage" @keyup.enter="sendMessage" @input="validateEnglishInput"
+                        @paste="handlePaste"
+                        :placeholder="useEnglish ? 'Type your message in English...' : '请用英文输入你的消息...'"
+                        :disabled="loading" class="message-input" />
+                    <div class="input-actions">
+                        <button class="send-btn" @click="sendMessage" :disabled="loading || !inputMessage.trim()">
+                            <span v-if="loading" class="loading-spinner">⏳</span>
+                            <span v-else class="send-icon">📤</span>
+                        </button>
+                    </div>
+                </div>
+                <div v-if="showInputWarning" class="input-warning">
+                    <span class="warning-icon">⚠️</span>
+                    <span class="warning-text">请只使用英文字符进行练习</span>
+                </div>
             </div>
         </div>
     </div>
@@ -135,6 +241,7 @@ const showGuideModal = ref(false)
 const guideStep = ref(1)
 const selectedCharacter = ref('')
 const selectedNature = ref('')
+const selectedUseEnglish = ref(null)
 
 // 性格选项配置
 const personalityOptions = ref([
@@ -220,7 +327,7 @@ const checkAiChooseStatus = async () => {
 
 // 指引步骤控制
 const nextStep = () => {
-    if (guideStep.value < 2) {
+    if (guideStep.value < 3) {
         guideStep.value++
     }
 }
@@ -234,9 +341,10 @@ const prevStep = () => {
 // 完成指引设置
 const completeGuide = async () => {
     try {
-        // 设置选择的角色和性格
+        // 设置选择的角色、性格和语言模式
         character.value = selectedCharacter.value
         nature.value = selectedNature.value
+        useEnglish.value = selectedUseEnglish.value
 
         // 更新用户的AI选择完成状态
         const response = await changeInfo({
@@ -442,76 +550,330 @@ const formatTime = (timestamp) => {
     background: #f5f5f5;
 }
 
+/* 优化后的设置区域样式 */
 .chat-settings {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.settings-header {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.settings-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.settings-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4ade80;
+    animation: pulse 2s infinite;
+}
+
+.status-indicator.online {
+    background: #4ade80;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.settings-content {
+    display: flex;
+    flex-direction: column;
     gap: 20px;
-    padding: 15px;
-    background: white;
-    border-bottom: 1px solid #ddd;
+}
+
+.setting-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
 }
 
 .setting-item {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 8px;
 }
 
-.setting-item label {
+.setting-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-weight: 500;
+    font-size: 14px;
 }
 
-.setting-item select {
-    padding: 5px 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+.label-icon {
+    font-size: 16px;
 }
 
+.custom-select {
+    position: relative;
+}
+
+.custom-select select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.custom-select select:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.custom-select select option {
+    background: #333;
+    color: white;
+}
+
+.language-toggle {
+    display: flex;
+    gap: 8px;
+}
+
+.toggle-btn {
+    flex: 1;
+    padding: 10px 12px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.toggle-btn.active {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.6);
+}
+
+.settings-actions {
+    display: flex;
+    justify-content: center;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.btn-icon {
+    font-size: 16px;
+}
+
+/* 优化后的聊天区域样式 */
 .chat-messages {
     flex: 1;
     overflow-y: auto;
     padding: 20px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 20px;
+    background: linear-gradient(to bottom, #f8fafc, #e2e8f0);
 }
 
+/* 欢迎消息样式 */
+.welcome-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+}
+
+.welcome-content {
+    text-align: center;
+    max-width: 500px;
+    padding: 40px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.welcome-content h3 {
+    margin: 0 0 12px 0;
+    color: #1e293b;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.welcome-content p {
+    margin: 0 0 30px 0;
+    color: #64748b;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.welcome-tips {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.tip-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #f1f5f9;
+    border-radius: 12px;
+    text-align: left;
+}
+
+.tip-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.tip-item span:last-child {
+    color: #475569;
+    font-size: 14px;
+}
+
+/* 消息样式 */
 .message {
-    max-width: 70%;
+    display: flex;
+    gap: 12px;
+    max-width: 80%;
+    animation: messageSlideIn 0.3s ease-out;
+}
+
+@keyframes messageSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .user-message {
     align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.message-avatar {
+    flex-shrink: 0;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.user-avatar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.ai-avatar {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.message-bubble {
+    flex: 1;
+    min-width: 0;
 }
 
 .user-message .message-content {
-    background: #007bff;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 10px 15px;
-    border-radius: 18px 18px 5px 18px;
+    padding: 12px 16px;
+    border-radius: 18px 18px 4px 18px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .ai-message .message-content {
     background: white;
-    color: #333;
-    padding: 10px 15px;
-    border-radius: 18px 18px 18px 5px;
-    border: 1px solid #ddd;
+    color: #1e293b;
+    padding: 12px 16px;
+    border-radius: 18px 18px 18px 4px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* 消息文本样式 */
 .message-text {
     margin: 0;
     font-family: inherit;
-    font-size: inherit;
+    font-size: 15px;
     white-space: pre-wrap;
     word-wrap: break-word;
-    line-height: 1.4;
+    line-height: 1.5;
 }
 
 .message-time {
-    font-size: 12px;
-    color: #666;
-    margin-top: 5px;
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 6px;
     text-align: right;
 }
 
@@ -519,34 +881,94 @@ const formatTime = (timestamp) => {
     text-align: left;
 }
 
+/* 优化后的输入区域样式 */
 .chat-input {
-    display: flex;
-    padding: 15px;
+    padding: 20px;
     background: white;
-    border-top: 1px solid #ddd;
-    gap: 10px;
+    border-top: 1px solid #e2e8f0;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.chat-input input {
+.input-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 24px;
+    transition: all 0.3s ease;
+}
+
+.input-wrapper:focus-within {
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.message-input {
     flex: 1;
-    padding: 10px 15px;
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    outline: none;
-}
-
-.chat-input button {
-    padding: 10px 20px;
-    background: #007bff;
-    color: white;
+    padding: 12px 16px;
     border: none;
-    border-radius: 20px;
-    cursor: pointer;
+    background: transparent;
+    font-size: 15px;
+    color: #1e293b;
+    outline: none;
+    resize: none;
 }
 
-.chat-input button:disabled {
-    background: #ccc;
+.message-input::placeholder {
+    color: #94a3b8;
+}
+
+.input-actions {
+    display: flex;
+    align-items: center;
+}
+
+.send-btn {
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-size: 18px;
+}
+
+.send-btn:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.send-btn:disabled {
+    background: #cbd5e1;
     cursor: not-allowed;
+    transform: none;
+}
+
+.loading-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* 英文输入限制样式 */
@@ -560,21 +982,27 @@ const formatTime = (timestamp) => {
     outline: none;
 }
 
+/* 输入警告样式 */
 .input-warning {
-    position: absolute;
-    bottom: -30px;
-    left: 15px;
-    background: #ff6b6b;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
     animation: slideIn 0.3s ease;
-    z-index: 10;
 }
 
-.chat-input {
-    position: relative;
+.warning-icon {
+    font-size: 16px;
+    color: #ef4444;
+}
+
+.warning-text {
+    font-size: 13px;
+    color: #dc2626;
 }
 
 @keyframes slideIn {
@@ -589,24 +1017,118 @@ const formatTime = (timestamp) => {
     }
 }
 
-/* 打字指示器 */
+/* 新的打字指示器 */
 .typing-indicator {
-    animation: blink 1s infinite;
-    color: #007bff;
-    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 8px;
 }
 
-@keyframes blink {
+.typing-indicator .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #94a3b8;
+    animation: typingDot 1.4s infinite ease-in-out;
+}
+
+.typing-indicator .dot:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.typing-indicator .dot:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes typingDot {
 
     0%,
-    50% {
-        opacity: 1;
+    80%,
+    100% {
+        transform: scale(0.8);
+        opacity: 0.5;
     }
 
-    51%,
-    100% {
-        opacity: 0;
+    40% {
+        transform: scale(1);
+        opacity: 1;
     }
+}
+
+/* 语言选择卡片样式 */
+.language-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+.language-card {
+    border: 2px solid #e0e0e0;
+    border-radius: 16px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.language-card:hover {
+    border-color: #007bff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 123, 255, 0.15);
+}
+
+.language-card.active {
+    border-color: #007bff;
+    background: #f8f9ff;
+    box-shadow: 0 4px 20px rgba(0, 123, 255, 0.2);
+}
+
+.language-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.language-card h3 {
+    margin: 0 0 12px 0;
+    color: #333;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.language-card p {
+    margin: 0 0 16px 0;
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.language-example {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 12px;
+    border-left: 3px solid #007bff;
+}
+
+.example-label {
+    font-weight: 600;
+    color: #007bff;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.example-text {
+    display: block;
+    margin-top: 4px;
+    color: #495057;
+    font-size: 13px;
+    font-style: italic;
+    line-height: 1.4;
 }
 
 /* 指引模态框样式 */
@@ -788,14 +1310,24 @@ const formatTime = (timestamp) => {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
+    .ai-chat-container {
+        height: 100vh;
+    }
+
     .guide-modal {
-        padding: 24px;
-        margin: 20px;
+        padding: 20px;
+        margin: 16px;
+        max-height: 90vh;
     }
 
     .personality-options {
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         gap: 12px;
+    }
+
+    .language-options {
+        grid-template-columns: 1fr;
+        gap: 16px;
     }
 
     .role-card {
@@ -805,6 +1337,110 @@ const formatTime = (timestamp) => {
 
     .guide-actions {
         flex-direction: column;
+        gap: 12px;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+    }
+
+    .chat-settings {
+        padding: 16px;
+        border-radius: 0;
+    }
+
+    .setting-group {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .language-toggle {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .chat-messages {
+        padding: 16px;
+    }
+
+    .message {
+        max-width: 90%;
+    }
+
+    .welcome-content {
+        padding: 24px;
+        margin: 0 16px;
+    }
+
+    .welcome-content h3 {
+        font-size: 20px;
+    }
+
+    .welcome-tips {
+        gap: 12px;
+    }
+
+    .tip-item {
+        padding: 10px 12px;
+    }
+
+    .chat-input {
+        padding: 16px;
+    }
+
+    .input-container {
+        margin: 0;
+    }
+
+    .message-input {
+        font-size: 16px;
+        /* 防止iOS缩放 */
+    }
+}
+
+@media (max-width: 480px) {
+    .guide-modal {
+        padding: 16px;
+        margin: 12px;
+    }
+
+    .guide-header h2 {
+        font-size: 20px;
+    }
+
+    .personality-options {
+        grid-template-columns: 1fr;
+    }
+
+    .personality-card {
+        padding: 16px;
+    }
+
+    .language-card {
+        padding: 20px;
+    }
+
+    .welcome-content {
+        padding: 20px;
+    }
+
+    .welcome-icon {
+        font-size: 48px;
+    }
+
+    .avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .message-content {
+        padding: 10px 14px;
+    }
+
+    .message-text {
+        font-size: 14px;
     }
 }
 </style>
