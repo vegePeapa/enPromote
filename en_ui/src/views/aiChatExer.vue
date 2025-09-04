@@ -21,7 +21,8 @@
                     <option value="exaggerated">夸张幽默</option>
                 </select>
             </div>
-            <div class="setting-item">
+            <!-- 只有一个选项，所以不显示,其他功能后续再开发 -->
+            <div class="setting-item" v-show="false">
                 <label>单词:</label>
                 <select v-model="model">
                     <option value="review">复习单词</option>

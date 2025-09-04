@@ -140,7 +140,7 @@ router.post('/changeinfo', async (req, res) => {
             return res.json({ code: 400, message: '请求体不能为空' });
         }
 
-        const { username, password, planStudyWords, planReviweWords, question_completed } = req.body;
+        const { username, password, planStudyWords, planReviweWords, question_completed, ai_choose_completed } = req.body;
         const updateData = {};
 
         // 验证用户名
@@ -161,7 +161,14 @@ router.post('/changeinfo', async (req, res) => {
 
             updateData.username = username.trim();
         }
-
+        // 验证问卷完成状态
+        if (question_completed !== undefined) {
+            updateData.question_completed = question_completed;
+        }
+        // 验证AI选择完成状态
+        if (ai_choose_completed !== undefined) {
+            updateData.ai_choose_completed = ai_choose_completed;
+        }
         // 验证密码
         if (password !== undefined) {
             if (!password || password.length < 6) {
@@ -170,9 +177,7 @@ router.post('/changeinfo', async (req, res) => {
 
             updateData.password = password;
         }
-        if (question_completed !== undefined) {
-            updateData.question_completed = question_completed;
-        }
+
         // 验证学习计划
         if (planStudyWords !== undefined) {
             const studyWords = parseInt(planStudyWords);

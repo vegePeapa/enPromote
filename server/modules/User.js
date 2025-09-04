@@ -51,6 +51,10 @@ let userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    ai_choose_completed: {
+        type: Boolean,
+        default: false
+    },
     createTime: {
         type: Date,
         default: Date.now
