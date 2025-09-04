@@ -87,67 +87,113 @@
             </div>
         </div>
 
-        <!-- 优化后的设置区域 -->
-        <div class="chat-settings" v-show="!showGuideModal">
-            <div class="settings-header">
-                <h3>🤖 AI助手设置</h3>
-                <div class="settings-status">
-                    <span class="status-indicator online"></span>
-                    <span class="status-text">AI助手在线</span>
+        <!-- 简化的顶部信息栏 -->
+        <div class="chat-header" v-show="!showGuideModal">
+            <div class="ai-info">
+                <div class="ai-avatar-display">{{ getAiAvatar() }}</div>
+                <div class="ai-details">
+                    <span class="ai-name">{{ getAiName() }}</span>
+                    <span class="ai-status">
+                        <span class="status-dot"></span>
+                        在线
+                    </span>
                 </div>
             </div>
 
-            <div class="settings-content">
-                <div class="setting-group">
-                    <div class="setting-item">
+            <button class="settings-btn" @click="showSettingsModal = true" title="AI设置">
+                ⚙️
+            </button>
+        </div>
+
+        <!-- AI设置模态窗口 -->
+        <div v-if="showSettingsModal" class="settings-modal-overlay" @click="closeSettingsModal">
+            <div class="settings-modal" @click.stop>
+                <div class="settings-modal-header">
+                    <h3>🤖 AI助手设置</h3>
+                    <button class="close-btn" @click="closeSettingsModal">✕</button>
+                </div>
+
+                <div class="settings-modal-content">
+                    <div class="setting-section">
                         <label class="setting-label">
                             <span class="label-icon">🎭</span>
                             AI角色
                         </label>
-                        <div class="custom-select">
-                            <select v-model="character">
-                                <option value="teacher">👨‍🏫 英语老师</option>
-                            </select>
-                        </div>
+                        <select v-model="tempCharacter" class="setting-select">
+                            <option value="teacher">👨‍🏫 英语老师</option>
+                        </select>
                     </div>
 
-                    <div class="setting-item">
+                    <div class="setting-section">
                         <label class="setting-label">
                             <span class="label-icon">🎨</span>
                             AI性格
                         </label>
-                        <div class="custom-select">
-                            <select v-model="nature">
-                                <option value="gentle">😊 彬彬有礼</option>
-                                <option value="blunt">🔥 脾气火爆</option>
-                                <option value="tsundere">😤 傲娇毒舌</option>
-                                <option value="cold">❄️ 高冷精英</option>
-                                <option value="exaggerated">🎭 夸张幽默</option>
-                            </select>
-                        </div>
+                        <select v-model="tempNature" class="setting-select">
+                            <option value="gentle">😊 彬彬有礼</option>
+                            <option value="blunt">🔥 脾气火爆</option>
+                            <option value="tsundere">😤 傲娇毒舌</option>
+                            <option value="cold">❄️ 高冷精英</option>
+                            <option value="exaggerated">🎭 夸张幽默</option>
+                        </select>
                     </div>
 
-                    <div class="setting-item">
+                    <div class="setting-section">
                         <label class="setting-label">
                             <span class="label-icon">🌍</span>
                             对话语言
                         </label>
-                        <div class="language-toggle">
-                            <button class="toggle-btn" :class="{ active: !useEnglish }" @click="useEnglish = false">
-                                🇨🇳 中英混合
-                            </button>
-                            <button class="toggle-btn" :class="{ active: useEnglish }" @click="useEnglish = true">
-                                🇺🇸 全英文
-                            </button>
+                        <div class="language-options-modal">
+                            <label class="radio-option">
+                                <input type="radio" :value="false" v-model="tempUseEnglish" />
+                                <span class="radio-label">🇨🇳 中英混合</span>
+                                <span class="radio-desc">AI会用中文解释，但会强调英文单词的使用</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" :value="true" v-model="tempUseEnglish" />
+                                <span class="radio-label">🇺🇸 全英文模式</span>
+                                <span class="radio-desc">完全使用英文对话，提供沉浸式英语环境</span>
+                            </label>
                         </div>
                     </div>
                 </div>
 
-                <div class="settings-actions">
-                    <button class="action-btn restart-btn" @click="restart">
-                        <span class="btn-icon">🔄</span>
-                        重置会话
+                <div class="settings-modal-actions">
+                    <button class="btn-cancel" @click="closeSettingsModal">取消</button>
+                    <button class="btn-apply" @click="applySettings" :disabled="!hasSettingsChanged">
+                        应用设置
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 确认重置对话模态窗口 -->
+        <div v-if="showConfirmModal" class="confirm-modal-overlay">
+            <div class="confirm-modal">
+                <div class="confirm-header">
+                    <span class="confirm-icon">⚠️</span>
+                    <h3>确认应用设置</h3>
+                </div>
+                <div class="confirm-content">
+                    <p>应用新的AI设置后会重置当前对话记录，是否继续？</p>
+                    <div class="settings-preview">
+                        <div class="preview-item">
+                            <span class="preview-label">AI角色：</span>
+                            <span>{{ getPreviewCharacterName() }}</span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">AI性格：</span>
+                            <span>{{ getPreviewNatureName() }}</span>
+                        </div>
+                        <div class="preview-item">
+                            <span class="preview-label">对话语言：</span>
+                            <span>{{ tempUseEnglish ? '🇺🇸 全英文模式' : '🇨🇳 中英混合' }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="confirm-actions">
+                    <button class="btn-cancel" @click="showConfirmModal = false">取消</button>
+                    <button class="btn-confirm" @click="confirmApplySettings">确认应用</button>
                 </div>
             </div>
         </div>
@@ -180,7 +226,7 @@
                 :class="['message', msg.role === 'user' ? 'user-message' : 'ai-message']">
                 <div class="message-avatar">
                     <div v-if="msg.role === 'user'" class="avatar user-avatar">👤</div>
-                    <div v-else class="avatar ai-avatar">🤖</div>
+                    <div v-else class="avatar ai-avatar">{{ getAiAvatar() }}</div>
                 </div>
                 <div class="message-bubble">
                     <div class="message-content">
@@ -221,7 +267,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted } from 'vue'
+import { ref, nextTick, onMounted, computed } from 'vue'
 import { getHistoryMessages, restartConversation } from '@/api/ai';
 import { getUserInfo, changeInfo } from '@/api/auth';
 
@@ -242,6 +288,13 @@ const guideStep = ref(1)
 const selectedCharacter = ref('')
 const selectedNature = ref('')
 const selectedUseEnglish = ref(null)
+
+// 设置模态窗口相关数据
+const showSettingsModal = ref(false)
+const showConfirmModal = ref(false)
+const tempCharacter = ref('teacher')
+const tempNature = ref('gentle')
+const tempUseEnglish = ref(false)
 
 // 性格选项配置
 const personalityOptions = ref([
@@ -365,8 +418,109 @@ const completeGuide = async () => {
     }
 }
 
+// 获取AI头像
+const getAiAvatar = () => {
+    const avatarMap = {
+        'teacher': '👨‍🏫'
+    }
+    return avatarMap[character.value] || '👨‍🏫'
+}
+
+// 获取AI名称
+const getAiName = () => {
+    const nameMap = {
+        'teacher': '英语老师'
+    }
+    const baseName = nameMap[character.value] || '英语老师'
+
+    // 根据性格添加描述
+    const personalityMap = {
+        'gentle': '温和的',
+        'blunt': '直率的',
+        'tsundere': '傲娇的',
+        'cold': '高冷的',
+        'exaggerated': '幽默的'
+    }
+
+    const personalityDesc = personalityMap[nature.value] || ''
+    return personalityDesc ? `${personalityDesc}${baseName}` : baseName
+}
+
+// 设置模态窗口相关方法
+const closeSettingsModal = () => {
+    showSettingsModal.value = false
+    // 重置临时设置为当前设置
+    tempCharacter.value = character.value
+    tempNature.value = nature.value
+    tempUseEnglish.value = useEnglish.value
+}
+
+// 检查设置是否有变化
+const hasSettingsChanged = computed(() => {
+    return tempCharacter.value !== character.value ||
+        tempNature.value !== nature.value ||
+        tempUseEnglish.value !== useEnglish.value
+})
+
+// 应用设置
+const applySettings = () => {
+    if (hasSettingsChanged.value) {
+        showConfirmModal.value = true
+    } else {
+        closeSettingsModal()
+    }
+}
+
+// 确认应用设置
+const confirmApplySettings = async () => {
+    try {
+        // 应用新设置
+        character.value = tempCharacter.value
+        nature.value = tempNature.value
+        useEnglish.value = tempUseEnglish.value
+
+        // 重置会话
+        const response = await restartConversation()
+        if (response.data.code == 200) {
+            messages.value = []
+            showConfirmModal.value = false
+            showSettingsModal.value = false
+        } else {
+            alert('重置会话失败，请重试')
+        }
+    } catch (error) {
+        console.error('应用设置失败:', error)
+        alert('应用设置失败，请重试')
+    }
+}
+
+// 获取预览的角色名称
+const getPreviewCharacterName = () => {
+    const nameMap = {
+        'teacher': '👨‍🏫 英语老师'
+    }
+    return nameMap[tempCharacter.value] || '👨‍🏫 英语老师'
+}
+
+// 获取预览的性格名称
+const getPreviewNatureName = () => {
+    const nameMap = {
+        'gentle': '😊 彬彬有礼',
+        'blunt': '🔥 脾气火爆',
+        'tsundere': '😤 傲娇毒舌',
+        'cold': '❄️ 高冷精英',
+        'exaggerated': '🎭 夸张幽默'
+    }
+    return nameMap[tempNature.value] || '😊 彬彬有礼'
+}
+
 // 组件挂载时检查状态
 onMounted(() => {
+    // 初始化临时设置
+    tempCharacter.value = character.value
+    tempNature.value = nature.value
+    tempUseEnglish.value = useEnglish.value
+
     // 延迟检查，确保用户已登录
     setTimeout(() => {
         checkAiChooseStatus()
@@ -550,45 +704,82 @@ const formatTime = (timestamp) => {
     background: #f5f5f5;
 }
 
-/* 优化后的设置区域样式 */
-.chat-settings {
+/* 简化的顶部信息栏样式 */
+.chat-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 20px;
-    border-radius: 0 0 16px 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.settings-header {
+    padding: 12px 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-.settings-header h3 {
-    margin: 0;
+.settings-btn {
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
     font-size: 18px;
-    font-weight: 600;
-}
-
-.settings-status {
+    cursor: pointer;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 14px;
+    justify-content: center;
 }
 
-.status-indicator {
-    width: 8px;
-    height: 8px;
+.settings-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+.ai-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ai-avatar-display {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.ai-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ai-name {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.ai-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: #4ade80;
     animation: pulse 2s infinite;
-}
-
-.status-indicator.online {
-    background: #4ade80;
 }
 
 @keyframes pulse {
@@ -603,29 +794,179 @@ const formatTime = (timestamp) => {
     }
 }
 
-.settings-content {
+.quick-settings {
     display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.setting-group {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    align-items: center;
     gap: 16px;
 }
 
-.setting-item {
+.setting-compact {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    align-items: center;
+}
+
+.compact-select {
+    padding: 6px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.compact-select:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.compact-select option {
+    background: #333;
+    color: white;
+}
+
+.language-switch {
+    display: flex;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.lang-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 18px;
+    background: transparent;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 40px;
+}
+
+.lang-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.lang-btn.active {
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.restart-btn-compact {
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 设置模态窗口样式 */
+.settings-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.settings-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 0;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.settings-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.settings-modal-header h3 {
+    margin: 0;
+    color: #1e293b;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.close-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: #64748b;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-btn:hover {
+    background: #cbd5e1;
+    color: #475569;
+}
+
+.settings-modal-content {
+    padding: 24px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.setting-section {
+    margin-bottom: 24px;
+}
+
+.setting-section:last-child {
+    margin-bottom: 0;
 }
 
 .setting-label {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-weight: 500;
+    margin-bottom: 12px;
+    font-weight: 600;
+    color: #374151;
     font-size: 14px;
 }
 
@@ -633,86 +974,236 @@ const formatTime = (timestamp) => {
     font-size: 16px;
 }
 
-.custom-select {
-    position: relative;
-}
-
-.custom-select select {
+.setting-select {
     width: 100%;
-    padding: 10px 12px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    padding: 12px 16px;
+    border: 2px solid #e2e8f0;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+    background: white;
+    color: #1e293b;
     font-size: 14px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
-.custom-select select:focus {
+.setting-select:focus {
     outline: none;
-    border-color: rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.2);
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.custom-select select option {
-    background: #333;
-    color: white;
-}
-
-.language-toggle {
+.language-options-modal {
     display: flex;
-    gap: 8px;
+    flex-direction: column;
+    gap: 12px;
 }
 
-.toggle-btn {
-    flex: 1;
-    padding: 10px 12px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    font-size: 14px;
+.radio-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
-.toggle-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
+.radio-option:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
 }
 
-.toggle-btn.active {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.6);
+.radio-option input[type="radio"] {
+    margin: 0;
+    margin-top: 2px;
 }
 
-.settings-actions {
+.radio-option input[type="radio"]:checked+.radio-label {
+    color: #667eea;
+    font-weight: 600;
+}
+
+.radio-option:has(input[type="radio"]:checked) {
+    border-color: #667eea;
+    background: #f8f9ff;
+}
+
+.radio-label {
+    font-weight: 500;
+    color: #374151;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.radio-desc {
+    color: #6b7280;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.settings-modal-actions {
     display: flex;
-    justify-content: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px 24px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
 }
 
-.action-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+.btn-cancel,
+.btn-apply {
+    padding: 10px 20px;
+    border: none;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
-.action-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-1px);
+.btn-cancel {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
 }
 
-.btn-icon {
-    font-size: 16px;
+.btn-cancel:hover {
+    background: #e2e8f0;
+}
+
+.btn-apply {
+    background: #667eea;
+    color: white;
+}
+
+.btn-apply:hover:not(:disabled) {
+    background: #5a67d8;
+}
+
+.btn-apply:disabled {
+    background: #cbd5e1;
+    cursor: not-allowed;
+}
+
+/* 确认模态窗口样式 */
+.confirm-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+}
+
+.confirm-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 0;
+    max-width: 450px;
+    width: 90%;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+    animation: confirmSlideIn 0.3s ease-out;
+}
+
+@keyframes confirmSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.confirm-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 24px 24px 16px 24px;
+}
+
+.confirm-icon {
+    font-size: 24px;
+}
+
+.confirm-header h3 {
+    margin: 0;
+    color: #dc2626;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.confirm-content {
+    padding: 0 24px 24px 24px;
+}
+
+.confirm-content p {
+    margin: 0 0 20px 0;
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.settings-preview {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.preview-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.preview-item:last-child {
+    margin-bottom: 0;
+}
+
+.preview-label {
+    font-weight: 500;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.preview-item span:last-child {
+    font-weight: 600;
+    color: #374151;
+    font-size: 13px;
+}
+
+.confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 20px 24px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.btn-confirm {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #dc2626;
+    color: white;
+}
+
+.btn-confirm:hover {
+    background: #b91c1c;
 }
 
 /* 优化后的聊天区域样式 */
@@ -1345,19 +1836,37 @@ const formatTime = (timestamp) => {
         width: 100%;
     }
 
-    .chat-settings {
-        padding: 16px;
-        border-radius: 0;
+    .chat-header {
+        padding: 10px 16px;
     }
 
-    .setting-group {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-
-    .language-toggle {
-        flex-direction: column;
+    .ai-info {
         gap: 8px;
+    }
+
+    .ai-avatar-display {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+    }
+
+    .ai-name {
+        font-size: 14px;
+    }
+
+    .settings-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .settings-modal {
+        margin: 20px;
+        max-height: 85vh;
+    }
+
+    .confirm-modal {
+        margin: 20px;
     }
 
     .chat-messages {
