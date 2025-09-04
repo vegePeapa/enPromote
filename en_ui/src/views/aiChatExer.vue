@@ -1,7 +1,57 @@
 <template>
     <div class="ai-chat-container">
+        <!-- AI角色选择指引模态框 -->
+        <div v-if="showGuideModal" class="guide-modal-overlay">
+            <div class="guide-modal">
+                <!-- 步骤1: 选择AI角色 -->
+                <div v-if="guideStep === 1" class="guide-step">
+                    <div class="guide-header">
+                        <h2>🎭 选择你的AI老师角色</h2>
+                        <p>选择一个适合你的AI老师角色来开始英语对话练习</p>
+                    </div>
+                    <div class="role-options">
+                        <div class="role-card" :class="{ active: selectedCharacter === 'teacher' }"
+                            @click="selectedCharacter = 'teacher'">
+                            <div class="role-icon">👨‍🏫</div>
+                            <h3>英语老师</h3>
+                            <p>专业的英语教学，帮助你提升英语水平</p>
+                        </div>
+                        <!-- 可以在这里添加更多角色选项 -->
+                    </div>
+                    <div class="guide-actions">
+                        <button class="btn-primary" :disabled="!selectedCharacter" @click="nextStep">
+                            下一步
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 步骤2: 选择AI性格 -->
+                <div v-if="guideStep === 2" class="guide-step">
+                    <div class="guide-header">
+                        <h2>🎨 选择AI老师的性格</h2>
+                        <p>选择一种你喜欢的教学风格</p>
+                    </div>
+                    <div class="personality-options">
+                        <div v-for="personality in personalityOptions" :key="personality.value" class="personality-card"
+                            :class="{ active: selectedNature === personality.value }"
+                            @click="selectedNature = personality.value">
+                            <div class="personality-icon">{{ personality.icon }}</div>
+                            <h3>{{ personality.name }}</h3>
+                            <p>{{ personality.description }}</p>
+                        </div>
+                    </div>
+                    <div class="guide-actions">
+                        <button class="btn-secondary" @click="prevStep">上一步</button>
+                        <button class="btn-primary" :disabled="!selectedNature" @click="completeGuide">
+                            开始对话
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- 设置区域 -->
-        <div class="chat-settings">
+        <div class="chat-settings" v-show="!showGuideModal">
 
 
             <div class="setting-item">
@@ -65,11 +115,11 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, onMounted } from 'vue'
 import { getHistoryMessages, restartConversation } from '@/api/ai';
+import { getUserInfo, changeInfo } from '@/api/auth';
 
 // 响应式数据
-
 const character = ref('teacher')
 const nature = ref('gentle')
 const model = ref('review')
@@ -79,6 +129,46 @@ const messages = ref([])
 const loading = ref(false)
 const messagesContainer = ref(null)
 const showInputWarning = ref(false)
+
+// 指引相关数据
+const showGuideModal = ref(false)
+const guideStep = ref(1)
+const selectedCharacter = ref('')
+const selectedNature = ref('')
+
+// 性格选项配置
+const personalityOptions = ref([
+    {
+        value: 'gentle',
+        name: '彬彬有礼',
+        icon: '😊',
+        description: '温和耐心，循循善诱的教学风格'
+    },
+    {
+        value: 'blunt',
+        name: '脾气火爆',
+        icon: '🔥',
+        description: '直接犀利，用生动比喻纠正错误'
+    },
+    {
+        value: 'tsundere',
+        name: '傲娇毒舌',
+        icon: '😤',
+        description: '表面严厉内心关怀的教学方式'
+    },
+    {
+        value: 'cold',
+        name: '高冷精英',
+        icon: '❄️',
+        description: '专业严谨，追求完美的教学态度'
+    },
+    {
+        value: 'exaggerated',
+        name: '夸张幽默',
+        icon: '🎭',
+        description: '生动有趣，用夸张方式加深印象'
+    }
+])
 // 重置
 const restart = async () => {
     try {
@@ -106,8 +196,74 @@ const getHistory = async () => {
     }
 }
 
-getHistory()
+// 检查用户AI选择状态
+const checkAiChooseStatus = async () => {
+    try {
+        const response = await getUserInfo()
+        if (response.data.code === 200) {
+            // 如果用户未完成AI选择，显示指引模态框
+            if (!response.data.ai_choose_completed) {
+                showGuideModal.value = true
+                // 设置默认选择
+                selectedCharacter.value = 'teacher'
+            } else {
+                // 如果已完成选择，获取历史记录
+                getHistory()
+            }
+        }
+    } catch (error) {
+        console.error('获取用户信息失败:', error)
+        // 出错时也获取历史记录，保证功能正常
+        getHistory()
+    }
+}
 
+// 指引步骤控制
+const nextStep = () => {
+    if (guideStep.value < 2) {
+        guideStep.value++
+    }
+}
+
+const prevStep = () => {
+    if (guideStep.value > 1) {
+        guideStep.value--
+    }
+}
+
+// 完成指引设置
+const completeGuide = async () => {
+    try {
+        // 设置选择的角色和性格
+        character.value = selectedCharacter.value
+        nature.value = selectedNature.value
+
+        // 更新用户的AI选择完成状态
+        const response = await changeInfo({
+            ai_choose_completed: true
+        })
+
+        if (response.data.code === 200) {
+            showGuideModal.value = false
+            // 获取历史记录
+            getHistory()
+        } else {
+            console.error('保存AI选择失败:', response.data.message)
+            alert('保存失败，请重试')
+        }
+    } catch (error) {
+        console.error('完成AI选择指引失败:', error)
+        alert('网络错误，请重试')
+    }
+}
+
+// 组件挂载时检查状态
+onMounted(() => {
+    // 延迟检查，确保用户已登录
+    setTimeout(() => {
+        checkAiChooseStatus()
+    }, 1000)
+})
 
 // 发送消息
 const sendMessage = async () => {
@@ -450,6 +606,205 @@ const formatTime = (timestamp) => {
     51%,
     100% {
         opacity: 0;
+    }
+}
+
+/* 指引模态框样式 */
+.guide-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.guide-modal {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.guide-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.guide-header h2 {
+    margin: 0 0 12px 0;
+    color: #333;
+    font-size: 24px;
+}
+
+.guide-header p {
+    margin: 0;
+    color: #666;
+    font-size: 16px;
+}
+
+/* 角色选择卡片 */
+.role-options {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 32px;
+}
+
+.role-card {
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 200px;
+}
+
+.role-card:hover {
+    border-color: #007bff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 123, 255, 0.2);
+}
+
+.role-card.active {
+    border-color: #007bff;
+    background: #f8f9ff;
+}
+
+.role-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.role-card h3 {
+    margin: 0 0 8px 0;
+    color: #333;
+    font-size: 18px;
+}
+
+.role-card p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+/* 性格选择卡片 */
+.personality-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.personality-card {
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.personality-card:hover {
+    border-color: #007bff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 123, 255, 0.2);
+}
+
+.personality-card.active {
+    border-color: #007bff;
+    background: #f8f9ff;
+}
+
+.personality-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+}
+
+.personality-card h3 {
+    margin: 0 0 8px 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.personality-card p {
+    margin: 0;
+    color: #666;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* 指引操作按钮 */
+.guide-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+}
+
+.btn-primary,
+.btn-secondary {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #0056b3;
+    transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: #f8f9fa;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+}
+
+.btn-secondary:hover {
+    background: #e9ecef;
+    transform: translateY(-1px);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .guide-modal {
+        padding: 24px;
+        margin: 20px;
+    }
+
+    .personality-options {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+    }
+
+    .role-card {
+        min-width: 160px;
+        padding: 20px;
+    }
+
+    .guide-actions {
+        flex-direction: column;
     }
 }
 </style>

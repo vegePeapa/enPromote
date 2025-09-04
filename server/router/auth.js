@@ -120,7 +120,8 @@ router.get('/info', async (req, res) => {
             totalWords: user.totalWords,
             planStudyWords: user.planStudyWords,
             planReviweWords: user.planReviweWords,
-            question_completed: user.question_completed
+            question_completed: user.question_completed,
+            ai_choose_completed: user.ai_choose_completed
         });
     } catch (error) {
         logApiError(req, error, 500);
