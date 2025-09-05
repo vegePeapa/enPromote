@@ -15,4 +15,24 @@ function restartConversation(): Promise<ApiResponse> {
     return request.post('/aiApi/restartConversation');
 }
 
-export { getHistoryMessages, restartConversation };
+interface PracticeWord {
+    id: string;
+    word: string;
+    chineseMeaning: string;
+    phonetic: string;
+    status: string;
+    priority: number;
+    reviewCounts: number;
+}
+
+interface PracticeWordsResponse {
+    words: PracticeWord[];
+    total: number;
+}
+
+function getPracticeWords(): Promise<ApiResponse<PracticeWordsResponse>> {
+    return request.get('/aiApi/practice_words');
+}
+
+export { getHistoryMessages, restartConversation, getPracticeWords };
+export type { PracticeWord, PracticeWordsResponse };

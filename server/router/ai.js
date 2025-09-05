@@ -284,6 +284,54 @@ async function summarizeConversation(userid) {
     }
 }
 
+// 获取用户需要练习的单词列表
+router.get('/practice_words', async (req, res) => {
+    try {
+        const { userid } = req.session;
+        if (!userid) {
+            return res.json({ code: 401, message: '未登录' });
+        }
 
+        // 和ai练习的单词一样10个
+        const userWords = await UserWord
+            .find({ userId: userid })
+            .sort({ priority: -1 })
+            .limit(10);
+
+        const wordList = await Promise.all(userWords.map(async data => {
+            const wordObj = await Word.findById(data['wordId']);
+            if (!wordObj) {
+                return null;
+            }
+            return {
+                id: wordObj._id,
+                word: wordObj.word,
+                chineseMeaning: wordObj.chineseMeaning || '暂无中文释义',
+                phonetic: wordObj.phonetics && wordObj.phonetics[0] ? wordObj.phonetics[0].text : '',
+                status: data.status,
+                priority: data.priority,
+                reviewCounts: data.reviewCounts
+            };
+        }));
+
+        const filteredWordList = wordList.filter(item => item !== null);
+
+        res.json({
+            code: 200,
+            message: '获取成功',
+            data: {
+                words: filteredWordList,
+                total: filteredWordList.length
+            }
+        });
+
+    } catch (error) {
+        console.error('获取练习单词列表失败:', error);
+        res.json({
+            code: 500,
+            message: '服务器内部错误'
+        });
+    }
+});
 
 module.exports = router;
