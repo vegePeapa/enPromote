@@ -3,8 +3,21 @@
         <!-- AI角色选择指引模态框 -->
         <div v-if="showGuideModal" class="guide-modal-overlay">
             <div class="guide-modal">
-                <!-- 步骤1: 选择AI角色 -->
                 <div v-if="guideStep === 1" class="guide-step">
+                    <div class="guide-header">
+                        <h2>ai 解说</h2>
+                        <p>本ai旨在将需要练习的单词融合进正常对话中帮助用户更好地理解单词,那么开始你的第一次对话吧,AI老师会帮助你提升英语水平.
+                        <nav style="color: blue;">ai会使用的单词可在左侧栏打开</nav>
+                        </p>
+                    </div>
+                    <div class="guide-actions">
+                        <button class="btn-primary" :disabled="!selectedCharacter" @click="nextStep">
+                            下一步
+                        </button>
+                    </div>
+                </div>
+                <!-- 步骤1: 选择AI角色 -->
+                <div v-if="guideStep === 2" class="guide-step">
                     <div class="guide-header">
                         <h2>🎭 选择你的AI老师角色</h2>
                         <p>选择一个适合你的AI老师角色来开始英语对话练习</p>
@@ -19,6 +32,7 @@
                         <!-- 可以在这里添加更多角色选项 -->
                     </div>
                     <div class="guide-actions">
+                        <button class="btn-secondary" @click="prevStep">上一步</button>
                         <button class="btn-primary" :disabled="!selectedCharacter" @click="nextStep">
                             下一步
                         </button>
@@ -26,7 +40,7 @@
                 </div>
 
                 <!-- 步骤2: 选择AI性格 -->
-                <div v-if="guideStep === 2" class="guide-step">
+                <div v-if="guideStep === 3" class="guide-step">
                     <div class="guide-header">
                         <h2>🎨 选择AI老师的性格</h2>
                         <p>选择一种你喜欢的教学风格</p>
@@ -49,7 +63,7 @@
                 </div>
 
                 <!-- 步骤3: 选择语言模式 -->
-                <div v-if="guideStep === 3" class="guide-step">
+                <div v-if="guideStep === 4" class="guide-step">
                     <div class="guide-header">
                         <h2>🌍 选择对话语言</h2>
                         <p>选择你希望的对话语言模式</p>
@@ -241,9 +255,9 @@
         </div>
 
         <!-- 侧边栏切换按钮 -->
-        <button class="sidebar-toggle" @click="toggleSidebar" :class="{ 'sidebar-toggle-open': showSidebar }">
+        <button class="sidebar-toggle" @click="toggleSidebar" :class="{ 'sidebar-toggle-active': showSidebar }">
             <span class="toggle-icon">📚</span>
-            <span class="toggle-text">单词</span>
+            <span class="toggle-text">单词列表</span>
         </button>
 
         <!-- 优化后的聊天区域 -->
@@ -278,7 +292,7 @@
                 </div>
                 <div class="message-bubble">
                     <div class="message-content">
-                        <pre class="message-text">{{ msg.content }}</pre>
+                        <div class="message-text">{{ msg.content }}</div>
                         <span v-if="msg.streaming" class="typing-indicator">
                             <span class="dot"></span>
                             <span class="dot"></span>
@@ -434,7 +448,7 @@ const checkAiChooseStatus = async () => {
 
 // 指引步骤控制
 const nextStep = () => {
-    if (guideStep.value < 3) {
+    if (guideStep.value < 4) {
         guideStep.value++
     }
 }
@@ -791,3 +805,5 @@ const formatTime = (timestamp) => {
     })
 }
 </script>
+
+<style scoped></style>
