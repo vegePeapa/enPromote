@@ -6,9 +6,9 @@
                 <div v-if="guideStep === 1" class="guide-step">
                     <div class="guide-header">
                         <h2>ai 解说</h2>
-                        <p>本ai旨在将需要练习的单词融合进正常对话中帮助用户更好地理解单词,那么开始你的第一次对话吧,AI老师会帮助你提升英语水平.
-                        <nav style="color: blue;">ai会使用的单词可在左侧栏打开</nav>
-                        </p>
+                        <p>本ai旨在将需要练习的单词融合进正常对话中帮助用户更好地理解单词,那么开始你的第一次对话吧,AI老师会帮助你提升英语水平.</p>
+                        <p style="color: blue;">ai会使用的单词可在左侧栏打开</p>
+
                     </div>
                     <div class="guide-actions">
                         <button class="btn-primary" :disabled="!selectedCharacter" @click="nextStep">
