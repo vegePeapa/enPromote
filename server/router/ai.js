@@ -77,6 +77,7 @@ router.post('/aiChat', async (req, res) => {
         let word_list = []
         switch (model) {
             case ('review'):
+                // 最多给ai10个单词，全给浪费我token
                 const userWords = await UserWord
                     .find({ userId: userid })
                     .sort({ priority: -1 })

@@ -20,7 +20,7 @@ const showQuestionModal = ref(false)
 const checkQuestionStatus = async () => {
   try {
     const response = await getUserInfo()
-    if (response.data.code === 200) {
+    if (response.data && response.data.code === 200) {
       // 如果用户未完成问卷，显示问卷模态框
       if (!response.data.question_completed) {
         showQuestionModal.value = true
@@ -37,7 +37,7 @@ const handleQuestionClose = () => {
 }
 
 // 处理问卷完成
-const handleQuestionCompleted = (planData) => {
+const handleQuestionCompleted = (planData: { planStudyWords: number; planReviweWords: number }) => {
   console.log('用户学习计划设置完成:', planData)
   showQuestionModal.value = false
 
