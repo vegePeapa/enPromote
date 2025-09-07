@@ -64,13 +64,13 @@ const accessLogStream = fs.createWriteStream(
 module.exports = {
     logger,
     accessLogStream,
-    
+
     // 便捷方法
     info: (message, meta = {}) => logger.info(message, meta),
     warn: (message, meta = {}) => logger.warn(message, meta),
     error: (message, meta = {}) => logger.error(message, meta),
     debug: (message, meta = {}) => logger.debug(message, meta),
-    
+
     // 记录API错误
     logApiError: (req, error, statusCode = 500) => {
         const errorInfo = {
@@ -84,10 +84,10 @@ module.exports = {
             stack: error.stack,
             timestamp: new Date().toISOString()
         };
-        
+
         logger.error('API Error', errorInfo);
     },
-    
+
     // 记录用户操作
     logUserAction: (req, action, details = {}) => {
         const actionInfo = {
@@ -100,10 +100,10 @@ module.exports = {
             details,
             timestamp: new Date().toISOString()
         };
-        
+
         logger.info('User Action', actionInfo);
     },
-    
+
     // 记录数据库操作错误
     logDbError: (operation, error, collection = '') => {
         const dbErrorInfo = {
@@ -113,7 +113,7 @@ module.exports = {
             stack: error.stack,
             timestamp: new Date().toISOString()
         };
-        
+
         logger.error('Database Error', dbErrorInfo);
     }
 };

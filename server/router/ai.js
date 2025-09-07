@@ -5,6 +5,7 @@ const Conver = require('../modules/aiConversation')
 const UserWord = require('../modules/UserWord');
 const Word = require('../modules/Word');
 const { apiKey, baseUrl } = require('../config/serve');
+const { logger } = require('../utils/logger');
 const openai = new OpenAI({
     baseURL: baseUrl,
     apiKey
@@ -113,7 +114,7 @@ router.post('/aiChat', async (req, res) => {
 
 
     } catch (err) {
-        console.error('AI聊天错误:', err);
+        logger.error('AI聊天处理错误:', err);
         res.status(500).json({
             code: 500,
             message: '服务器内部错误'
@@ -142,11 +143,11 @@ router.get('/history_messages', async (req, res) => {
 
     }
     catch (err) {
+        logger.error('AI聊天处理错误:', err);
         res.status(500).json({
             code: 500,
             message: '服务器内部错误'
         });
-        console.log(`ai获取历史消息错误${err}`);
     }
 })
 router.post('/restartConversation', async (req, res) => {
@@ -158,7 +159,8 @@ router.post('/restartConversation', async (req, res) => {
             message: '会话已重置'
         });
     } catch (err) {
-        console.log(`ai重置会话错误${err}`);
+        logger.error('AI聊天处理错误:', err);
+        // console.log(`ai重置会话错误${err}`);
     }
 
 })
@@ -223,7 +225,8 @@ async function aiChat(message, character, history, userid, res, word_list, useEn
         };
 
     } catch (error) {
-        console.error('AI聊天处理错误:', error);
+        logger.error('AI聊天处理错误:', error);
+        // console.error('AI聊天处理错误:', error);
         throw error; // 重新抛出错误，让上层处理
     }
 }
@@ -247,7 +250,7 @@ async function saveConversation(userid, userMessage, aiReply) {
             await conversation.save();
         }
     } catch (error) {
-        console.error('保存对话失败:', error);
+        logger.error('保存对话失败:');
         // 不抛出错误，避免影响主流程
     }
 }
@@ -280,7 +283,7 @@ async function summarizeConversation(userid) {
             await conversation.save()
         }
     } catch (err) {
-        console.log(`ai摘要错误${err}`);
+        logger.error('AI聊天处理错误:', err);
     }
 }
 
@@ -326,7 +329,8 @@ router.get('/practice_words', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('获取练习单词列表失败:', error);
+        logger.error('获取练习单词列表失败:', error);
+        // console.error('获取练习单词列表失败:', error);
         res.json({
             code: 500,
             message: '服务器内部错误'

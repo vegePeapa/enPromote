@@ -124,6 +124,7 @@ router.get('/info', async (req, res) => {
             ai_choose_completed: user.ai_choose_completed
         });
     } catch (error) {
+        logger.error('获取用户信息失败:', error);
         logApiError(req, error, 500);
         return res.json({ code: 500, message: '服务器内部错误' });
     }
