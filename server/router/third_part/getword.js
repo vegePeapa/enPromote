@@ -12,10 +12,10 @@ const Word = require('../../modules/Word');
 // 缓存CET-4.json数据，避免重复读取
 let cet4Cache = null;
 
-// 按需加载CET-4.json中特定字母的单词
+// 按需加载word/CET-4.json中特定字母的单词
 async function loadCet4WordsByInitial(initial) {
     try {
-        const cet4Path = path.join(__dirname, '..', '..', 'vocabulary', 'CET-4.json');
+        const cet4Path = path.join(__dirname, '..', '..', 'word', 'CET-4.json');
 
         // 如果缓存为空，则初始化缓存
         if (!cet4Cache) {

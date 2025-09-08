@@ -4,91 +4,106 @@
             "word": "reservation",
             "mean": "预订",
             "phonetic_symbol": "/ˌrezərˈveɪʃn/",
-            "initial": "R"
+            "initial": "R",
+            "sence": "A"
         },
         {
             "word": "check-in",
             "mean": "办理入住",
             "phonetic_symbol": "/ˈtʃek ɪn/",
-            "initial": "C"
+            "initial": "C",
+            "sence": "A"
         },
         {
             "word": "front desk",
             "mean": "前台",
             "phonetic_symbol": "/frʌnt desk/",
-            "initial": "F"
+            "initial": "F",
+            "sence": "A"
         },
         {
             "word": "identification",
             "mean": "身份证明",
             "phonetic_symbol": "/aɪˌdentɪfɪˈkeɪʃn/",
-            "initial": "I"
+            "initial": "I",
+            "sence": "A"
         },
         {
             "word": "passport",
             "mean": "护照",
             "phonetic_symbol": "/ˈpɑːspɔːrt/",
-            "initial": "P"
+            "initial": "P",
+            "sence": "A"
         },
         {
             "word": "key card",
             "mean": "房卡",
             "phonetic_symbol": "/kiː kɑːrd/",
-            "initial": "K"
+            "initial": "K",
+            "sence": "A"
         },
         {
             "word": "confirmation",
             "mean": "确认",
             "phonetic_symbol": "/ˌkɒnfəˈmeɪʃn/",
-            "initial": "C"
+            "initial": "C",
+            "sence": "A"
         },
         {
             "word": "suite",
             "mean": "套房",
             "phonetic_symbol": "/swiːt/",
-            "initial": "S"
+            "initial": "S",
+            "sence": "A"
         },
         {
             "word": "amenities",
             "mean": "便利设施",
             "phonetic_symbol": "/əˈmenɪtiz/",
-            "initial": "A"
+            "initial": "A",
+            "sence": "A"
         },
         {
             "word": "available",
             "mean": "可用的",
             "phonetic_symbol": "/əˈveɪləbl/",
-            "initial": "A"
+            "initial": "A",
+            "sence": "A"
         },
         {
             "word": "request",
             "mean": "请求",
             "phonetic_symbol": "/rɪˈkwest/",
-            "initial": "R"
+            "initial": "R",
+            "sence": "A"
         },
         {
             "word": "receipt",
             "mean": "收据",
             "phonetic_symbol": "/rɪˈsiːt/",
-            "initial": "R"
+            "initial": "R",
+            "sence": "A"
         },
         {
             "word": "bellhop",
             "mean": "行李员",
             "phonetic_symbol": "/ˈbelhɑːp/",
-            "initial": "B"
+            "initial": "B",
+            "sence": "A"
         },
         {
             "word": "luggage",
             "mean": "行李",
             "phonetic_symbol": "/ˈlʌɡɪdʒ/",
-            "initial": "L"
+            "initial": "L",
+            "sence": "A"
         },
         {
             "word": "non-smoking",
             "mean": "无烟的",
             "phonetic_symbol": "/nɒn ˈsməʊkɪŋ/",
-            "initial": "N"
+            "initial": "N",
+            "sence": "A"
         }
     ],
     "B": [
@@ -96,91 +111,106 @@
             "word": "menu",
             "mean": "菜单",
             "phonetic_symbol": "/ˈmenjuː/",
-            "initial": "M"
+            "initial": "M",
+            "sence": "B"
         },
         {
             "word": "appetizer",
             "mean": "开胃菜",
             "phonetic_symbol": "/ˈæpɪtaɪzər/",
-            "initial": "A"
+            "initial": "A",
+            "sence": "B"
         },
         {
             "word": "main course",
             "mean": "主菜",
             "phonetic_symbol": "/meɪn kɔːrs/",
-            "initial": "M"
+            "initial": "M",
+            "sence": "B"
         },
         {
             "word": "dessert",
             "mean": "甜点",
             "phonetic_symbol": "/dɪˈzɜːrt/",
-            "initial": "D"
+            "initial": "D",
+            "sence": "B"
         },
         {
             "word": "beverage",
             "mean": "饮料",
             "phonetic_symbol": "/ˈbevərɪdʒ/",
-            "initial": "B"
+            "initial": "B",
+            "sence": "B"
         },
         {
             "word": "recommendation",
             "mean": "推荐",
             "phonetic_symbol": "/ˌrekəmenˈdeɪʃn/",
-            "initial": "R"
+            "initial": "R",
+            "sence": "B"
         },
         {
             "word": "specialty",
             "mean": "特色菜",
             "phonetic_symbol": "/ˈspeʃəlti/",
-            "initial": "S"
+            "initial": "S",
+            "sence": "B"
         },
         {
             "word": "ingredients",
             "mean": "食材",
             "phonetic_symbol": "/ɪnˈɡriːdiənts/",
-            "initial": "I"
+            "initial": "I",
+            "sence": "B"
         },
         {
             "word": "allergy",
             "mean": "过敏",
             "phonetic_symbol": "/ˈælərdʒi/",
-            "initial": "A"
+            "initial": "A",
+            "sence": "B"
         },
         {
             "word": "vegetarian",
             "mean": "素食者",
             "phonetic_symbol": "/ˌvedʒəˈteriən/",
-            "initial": "V"
+            "initial": "V",
+            "sence": "B"
         },
         {
             "word": "reservation",
             "mean": "预订",
             "phonetic_symbol": "/ˌrezərˈveɪʃn/",
-            "initial": "R"
+            "initial": "R",
+            "sence": "B"
         },
         {
             "word": "waiter",
             "mean": "服务员",
             "phonetic_symbol": "/ˈweɪtər/",
-            "initial": "W"
+            "initial": "W",
+            "sence": "B"
         },
         {
             "word": "waitress",
             "mean": "女服务员",
             "phonetic_symbol": "/ˈweɪtrəs/",
-            "initial": "W"
+            "initial": "W",
+            "sence": "B"
         },
         {
             "word": "bill",
             "mean": "账单",
             "phonetic_symbol": "/bɪl/",
-            "initial": "B"
+            "initial": "B",
+            "sence": "B"
         },
         {
             "word": "tip",
             "mean": "小费",
             "phonetic_symbol": "/tɪp/",
-            "initial": "T"
+            "initial": "T",
+            "sence": "B"
         }
     ]
 }

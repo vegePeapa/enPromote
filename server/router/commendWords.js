@@ -17,12 +17,13 @@ router.get('/getReviewWord', async (req, res) => {
         });
     }
     const user = await User.findById(userid);
-    const reviewLimit = user?.planReviweWords || 10;
+    const curSence = user.cet4.position.split(':')[0];
     console.log(`reviewLimit=${reviewLimit}`);
+    //找出当前用户并符合场景的单词
     const userWords = await UserWord
-        .find({ userId: userid })
+        .find({ userId: userid, sence: curSence })
         .sort({ priority: -1 })
-        .limit(reviewLimit);
+
     const wordDate = await Promise.all(userWords.map(async data => {
         // 使用 findById 或 findOne 而不是 find，因为 find 返回数组
         const wordObj = await Words.findById(data['wordId']);

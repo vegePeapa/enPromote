@@ -10,6 +10,10 @@ let userWordSchema = new mongoose.Schema({
         required: true,
         // unique: true,
     },
+    sence: {
+        type: String,
+        default: "A"
+    },
     status: {
         type: String,
         required: true,
