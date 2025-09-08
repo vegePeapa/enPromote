@@ -27,6 +27,15 @@ interface ApiResponse<T = any> {
     } & T;
 }
 
+// axios 实际返回的响应结构
+interface AxiosApiResponse<T = any> {
+    data: ApiResponse<T>;
+    status: number;
+    statusText: string;
+    headers: any;
+    config: any;
+}
+
 interface UserInfo {
     username: string;
     creatTime: string;
@@ -37,6 +46,11 @@ interface UserInfo {
         todayStudiedWords: number;
         streakDays: number;
         lastStudyDate: string;
+        wordP: boolean;
+        spellP: boolean;
+        listenP: boolean;
+        customsP: boolean;
+        coverP: boolean;
     };
     todayWords: number;
     streakDays: number;
@@ -45,27 +59,45 @@ interface UserInfo {
     planReviweWords: number;
     question_completed: boolean;
     ai_choose_completed: boolean;
+    // 多章节支持
+    chapters: {
+        [key: string]: {
+            level: number;
+            score: number;
+            completedWords: number;
+            wordP: boolean;
+            spellP: boolean;
+            listenP: boolean;
+            customsP: boolean;
+            coverP: boolean;
+        };
+    };
+    currentChapter: string;
 }
 
-function login(data: LoginData): Promise<ApiResponse> {
+function login(data: LoginData): Promise<AxiosApiResponse> {
     return request.post('/auth/login', data);
 }
 
-function register(data: RegisterData): Promise<ApiResponse> {
+function register(data: RegisterData): Promise<AxiosApiResponse> {
     return request.post('/auth/register', data);
 }
 
-function logout(): Promise<ApiResponse> {
+function logout(): Promise<AxiosApiResponse> {
     return request.post('/auth/logout');
 }
 
-function getUserInfo(): Promise<ApiResponse<UserInfo>> {
+function getUserInfo(): Promise<AxiosApiResponse<UserInfo>> {
     return request.get('/auth/info');
 }
 
-function changeInfo(data: ChangeInfoData): Promise<ApiResponse> {
+function changeInfo(data: ChangeInfoData): Promise<AxiosApiResponse> {
     return request.post('/auth/changeinfo', data);
 }
 
-export { login, register, logout, getUserInfo, changeInfo };
-export type { LoginData, RegisterData, ChangeInfoData, ApiResponse, UserInfo };
+function switchChapter(chapter: string): Promise<AxiosApiResponse> {
+    return request.post('/auth/switch-chapter', { chapter });
+}
+
+export { login, register, logout, getUserInfo, changeInfo, switchChapter };
+export type { LoginData, RegisterData, ChangeInfoData, ApiResponse, AxiosApiResponse, UserInfo };

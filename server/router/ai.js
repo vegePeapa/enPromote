@@ -170,18 +170,41 @@ router.post('/restartConversation', async (req, res) => {
 // 生成题目
 router.post('/ai_generate_question', async (req, res) => {
     try {
-        // a酒店入住，b餐厅用餐 PositionType由前端处理
+        const userid = req.session.userid;
+        if (!userid) {
+            return res.json({
+                code: 401,
+                message: '请先登录'
+            });
+        }
+
         const { PositionType, wordList } = req.body;
         if (!PositionType || !wordList) {
             logger.error("ai_generate_question请求体结构缺失");
             console.log(PositionType, wordList);
-            res.json({
+            return res.json({
                 code: 400,
                 message: "请求体结构缺失"
-            })
+            });
         }
+
+        // 获取用户当前章节，自动选择对应的AI提示词
+        const User = require('../modules/User');
+        const user = await User.findById(userid);
+        if (!user) {
+            return res.json({
+                code: 404,
+                message: '用户不存在'
+            });
+        }
+
+        // 确保用户有currentChapter字段
+        const currentChapter = user.currentChapter || 'A';
         
-        const aiPromptStr = JSON.stringify(aiPromptJson[PositionType]);
+        // 根据当前章节自动选择对应的AI提示词
+        const chapterKey = currentChapter;
+        const aiPromptStr = JSON.stringify(aiPromptJson[chapterKey]);
+        
         const completion = await openai.chat.completions.create({
             messages: [
                 { role: "system", content: aiPromptStr }
@@ -190,13 +213,21 @@ router.post('/ai_generate_question', async (req, res) => {
             stream: false
         })
         const custom = completion.choices[0].message.content;
+        
+        logger.info(`用户 ${userid} 在章节 ${currentChapter} 生成AI题目`);
+        
         res.json({
             code: 200,
             message: "成功",
-            data: JSON.parse(custom)
+            data: JSON.parse(custom),
+            chapter: currentChapter // 返回使用的章节信息
         })
     } catch (err) {
-        console.log(`ai question${err}`);
+        logger.error(`AI生成题目错误: ${err}`);
+        res.json({
+            code: 500,
+            message: "服务器内部错误"
+        });
     }
 })
 

@@ -158,7 +158,10 @@ import { ref, nextTick, onMounted, computed } from 'vue'
 
 // Props
 const props = defineProps({
-  // 可以接收一些配置参数
+  chapter: {
+    type: String,
+    default: 'A'
+  }
 })
 
 // Emits

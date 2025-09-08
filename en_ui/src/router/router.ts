@@ -49,9 +49,15 @@ const router = createRouter({
             meta: { requiresAuth: true }
         },
         {
+            path: '/chapters',
+            name: 'ChapterSelection',
+            component: () => import('../views/ChapterSelection.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
             path: '/adventure',
             name: 'Adventure',
-            component: () => import('../views/adventure.vue'),
+            component: () => import('../views/AdventureMap.vue'),
             meta: { requiresAuth: true }
         },
     ]

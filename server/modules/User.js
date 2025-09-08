@@ -59,6 +59,30 @@ let userSchema = new mongoose.Schema({
             default: Date.now
         }
     },
+    // 多章节进度支持
+    chapters: {
+        type: Map,
+        of: {
+            level: { type: Number, default: 1 },
+            score: { type: Number, default: 0 },
+            completedWords: { type: Number, default: 0 },
+            wordP: { type: Boolean, default: false },
+            spellP: { type: Boolean, default: false },
+            listenP: { type: Boolean, default: false },
+            customsP: { type: Boolean, default: false },
+            coverP: { type: Boolean, default: false }
+        },
+        default: function() {
+            return new Map([
+                ['A', { level: 1, score: 0, completedWords: 0, wordP: false, spellP: false, listenP: false, customsP: false, coverP: false }],
+                ['B', { level: 1, score: 0, completedWords: 0, wordP: false, spellP: false, listenP: false, customsP: false, coverP: false }]
+            ]);
+        }
+    },
+    currentChapter: {
+        type: String,
+        default: 'A'
+    },
     totalWords: {
         type: Number,
         default: 0

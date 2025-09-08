@@ -109,6 +109,16 @@ router.get('/info', async (req, res) => {
 
         logUserAction(req, 'GET_USER_INFO', { userId: userid });
 
+        // 确保用户有chapters字段，如果没有则初始化
+        if (!user.chapters || user.chapters.size === 0) {
+            user.chapters = new Map([
+                ['A', { level: 1, score: 0, completedWords: 0, wordP: false, spellP: false, listenP: false, customsP: false, coverP: false }],
+                ['B', { level: 1, score: 0, completedWords: 0, wordP: false, spellP: false, listenP: false, customsP: false, coverP: false }]
+            ]);
+            user.currentChapter = user.currentChapter || 'A';
+            await user.save();
+        }
+
         return res.json({
             code: 200,
             message: '获取用户信息成功',
@@ -121,7 +131,10 @@ router.get('/info', async (req, res) => {
             planStudyWords: user.planStudyWords,
             planReviweWords: user.planReviweWords,
             question_completed: user.question_completed,
-            ai_choose_completed: user.ai_choose_completed
+            ai_choose_completed: user.ai_choose_completed,
+            // 新增多章节支持
+            chapters: Object.fromEntries(user.chapters),
+            currentChapter: user.currentChapter
         });
     } catch (error) {
         logger.error('获取用户信息失败:', error);
@@ -197,11 +210,33 @@ router.post('/changeinfo', async (req, res) => {
             updateData.planReviweWords = reviewWords;
         }
 
-        // 关卡进度更新
+        // 获取用户当前章节
+        const user = await User.findById(userid);
+        if (!user) {
+            return res.json({ code: 404, message: '用户不存在' });
+        }
+
+        // 确保用户有chapters字段
+        if (!user.chapters || user.chapters.size === 0) {
+            user.chapters = new Map([
+                ['A', { level: 1, score: 0, completedWords: 0, wordP: false, spellP: false, listenP: false, customsP: false, coverP: false }],
+                ['B', { level: 1, score: 0, completedWords: 0, wordP: false, spellP: false, listenP: false, customsP: false, coverP: false }]
+            ]);
+            user.currentChapter = user.currentChapter || 'A';
+        }
+
+        const currentChapter = user.currentChapter || 'A';
+
+        // 关卡进度更新 - 同时更新cet4和当前章节
         const progressFields = { wordP, spellP, listenP, customsP, coverP };
         for (const field in progressFields) {
             if (progressFields[field] !== undefined) {
                 cet4Update[`cet4.${field}`] = !!progressFields[field]; // 转换为布尔值
+                
+                // 同时更新当前章节的进度
+                const chapterProgress = user.chapters.get(currentChapter) || {};
+                chapterProgress[field] = !!progressFields[field];
+                user.chapters.set(currentChapter, chapterProgress);
             }
         }
 
@@ -210,9 +245,11 @@ router.post('/changeinfo', async (req, res) => {
 
         // 如果 coverP 为 true，处理关卡重置和进度推进
         if (coverP === true) {
-            await advanceToNextStage(userid);
+            await advanceToNextStageWithChapter(userid, currentChapter);
         }
 
+        // 保存章节进度
+        await user.save();
 
         // 更新用户信息
         const updatedUser = await User.findByIdAndUpdate(
@@ -249,6 +286,52 @@ router.post('/changeinfo', async (req, res) => {
         return res.json({ code: 500, message: '服务器内部错误' });
     }
 })
+// 切换章节接口
+router.post('/switch-chapter', async (req, res) => {
+    try {
+        const { userid } = req.session;
+        const { chapter } = req.body;
+
+        if (!userid) {
+            return res.json({ code: 401, message: '请先登录' });
+        }
+
+        if (!chapter || !['A', 'B'].includes(chapter)) {
+            return res.json({ code: 400, message: '无效的章节' });
+        }
+
+        const user = await User.findById(userid);
+        if (!user) {
+            return res.json({ code: 404, message: '用户不存在' });
+        }
+
+        // 确保用户有chapters字段
+        if (!user.chapters || user.chapters.size === 0) {
+            user.chapters = new Map([
+                ['A', { level: 1, score: 0, completedWords: 0, wordP: false, spellP: false, listenP: false, customsP: false, coverP: false }],
+                ['B', { level: 1, score: 0, completedWords: 0, wordP: false, spellP: false, listenP: false, customsP: false, coverP: false }]
+            ]);
+        }
+
+        user.currentChapter = chapter;
+        await user.save();
+
+        logUserAction(req, 'SWITCH_CHAPTER', { userId: userid, chapter });
+
+        res.json({
+            code: 200,
+            message: '切换章节成功',
+            currentChapter: chapter,
+            chapterProgress: user.chapters.get(chapter)
+        });
+
+    } catch (error) {
+        console.error('切换章节失败:', error);
+        logApiError(req, error, 500);
+        return res.json({ code: 500, message: '服务器内部错误' });
+    }
+});
+
 // 关卡进度函数
 async function advanceToNextStage(userid) {
     const user = await User.findById(userid);
@@ -264,6 +347,36 @@ async function advanceToNextStage(userid) {
     user.cet4.listenP = false;
     user.cet4.customsP = false;
     user.cet4.coverP = false;
+
+    await user.save();
+}
+
+// 支持章节的关卡进度函数
+async function advanceToNextStageWithChapter(userid, chapter) {
+    const user = await User.findById(userid);
+    if (!user) throw new Error('User not found for stage advancement');
+
+    // 更新传统的cet4进度
+    const [letter, number] = user.cet4.position.split(':');
+    const nextLetter = String.fromCharCode(letter.charCodeAt(0) + 1);
+    user.cet4.position = `${nextLetter}:${number}`;
+    user.cet4.wordP = false;
+    user.cet4.spellP = false;
+    user.cet4.listenP = false;
+    user.cet4.customsP = false;
+    user.cet4.coverP = false;
+
+    // 更新当前章节进度
+    if (user.chapters && user.chapters.has(chapter)) {
+        const chapterProgress = user.chapters.get(chapter);
+        chapterProgress.level = (chapterProgress.level || 1) + 1;
+        chapterProgress.wordP = false;
+        chapterProgress.spellP = false;
+        chapterProgress.listenP = false;
+        chapterProgress.customsP = false;
+        chapterProgress.coverP = false;
+        user.chapters.set(chapter, chapterProgress);
+    }
 
     await user.save();
 }

@@ -33,6 +33,18 @@ let wordSchema = new mongoose.Schema({
     source: {
         type: String,
     },
+    // 章节支持
+    chapter: {
+        type: String,
+        required: true,
+        default: 'A'
+    },
+    // 场景类型
+    scenario: {
+        type: String,
+        required: true,
+        default: 'hotel'
+    },
     // 创建时间
     createTime: {
         type: Date,

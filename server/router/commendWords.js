@@ -18,7 +18,9 @@ router.get('/getReviewWord', async (req, res) => {
     }
     const user = await User.findById(userid);
     const curSence = user.cet4.position.split(':')[0];
-    //找出当前用户并符合场景的单词
+    const chapter = req.query.chapter || user.currentChapter || 'A'; // 支持章节参数
+    
+    //找出当前用户并符合场景和章节的单词
     const userWords = await UserWord
         .find({ userId: userid, sence: curSence })
         .sort({ priority: -1 })
