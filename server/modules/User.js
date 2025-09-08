@@ -14,6 +14,30 @@ let userSchema = new mongoose.Schema({
             type: String,
             default: 'A:0'
         },
+        wordP: {
+            type: Boolean,
+            default: false
+        },
+
+        spellP: {
+            type: Boolean,
+            default: false
+        },
+
+        listenP: {
+            type: Boolean,
+            default: false
+        },
+
+        customsP: {
+            type: Boolean,
+            default: false
+        },
+
+        coverP: {
+            type: Boolean,
+            default: false
+        },
         lastStudyTime: {
             type: Date,
             default: Date.now
@@ -41,11 +65,11 @@ let userSchema = new mongoose.Schema({
     },
     planReviweWords: {
         type: Number,
-        default: 0
+        default: 15
     },
     planStudyWords: {
         type: Number,
-        default: 0
+        default: 15
     },
     question_completed: {
         type: Boolean,

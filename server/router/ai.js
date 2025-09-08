@@ -6,6 +6,7 @@ const UserWord = require('../modules/UserWord');
 const Word = require('../modules/Word');
 const { apiKey, baseUrl } = require('../config/serve');
 const { logger } = require('../utils/logger');
+const aiPromptJson = require("../ai/aiPrompt.json");
 const openai = new OpenAI({
     baseURL: baseUrl,
     apiKey
@@ -164,7 +165,89 @@ router.post('/restartConversation', async (req, res) => {
     }
 
 })
+// 生成题目
+router.post('/ai_generate_question', async (req, res) => {
+    try {
+        // a酒店入住，b餐厅用餐 PositionType由前端处理
+        const { PositionType, wordList } = req.body;
+        if (!PositionType || !wordList) {
+            logger.error("ai_generate_question请求体结构缺失");
+            console.log(PositionType, wordList);
+            res.json({
+                code: 400,
+                message: "请求体结构缺失"
+            })
+        }
+        
+        const aiPromptStr = JSON.stringify(aiPromptJson[PositionType]);
+        const completion = await openai.chat.completions.create({
+            messages: [
+                { role: "system", content: aiPromptStr }
+            ],
+            model: "deepseek-chat",
+            stream: false
+        })
+        const custom = completion.choices[0].message.content;
+        res.json({
+            code: 200,
+            message: "成功",
+            data: JSON.parse(custom)
+        })
+    } catch (err) {
+        console.log(`ai question${err}`);
+    }
+})
 
+// 获取用户需要练习的单词列表
+router.get('/practice_words', async (req, res) => {
+    try {
+        const { userid } = req.session;
+        if (!userid) {
+            return res.json({ code: 401, message: '未登录' });
+        }
+
+        // 和ai练习的单词一样10个
+        const userWords = await UserWord
+            .find({ userId: userid })
+            .sort({ priority: -1 })
+            .limit(10);
+
+        const wordList = await Promise.all(userWords.map(async data => {
+            const wordObj = await Word.findById(data['wordId']);
+            if (!wordObj) {
+                return null;
+            }
+            return {
+                id: wordObj._id,
+                word: wordObj.word,
+                chineseMeaning: wordObj.chineseMeaning || '暂无中文释义',
+                phonetic: wordObj.phonetics && wordObj.phonetics[0] ? wordObj.phonetics[0].text : '',
+                status: data.status,
+                priority: data.priority,
+                reviewCounts: data.reviewCounts
+            };
+        }));
+
+        const filteredWordList = wordList.filter(item => item !== null);
+
+        res.json({
+            code: 200,
+            message: '获取成功',
+            data: {
+                words: filteredWordList,
+                total: filteredWordList.length
+            }
+        });
+
+    } catch (error) {
+        logger.error('获取练习单词列表失败:', error);
+        // console.error('获取练习单词列表失败:', error);
+        res.json({
+            code: 500,
+            message: '服务器内部错误'
+        });
+    }
+});
 async function aiChat(message, character, history, userid, res, word_list, useEn) {
     try {
         // 确保history是数组
@@ -287,55 +370,6 @@ async function summarizeConversation(userid) {
     }
 }
 
-// 获取用户需要练习的单词列表
-router.get('/practice_words', async (req, res) => {
-    try {
-        const { userid } = req.session;
-        if (!userid) {
-            return res.json({ code: 401, message: '未登录' });
-        }
 
-        // 和ai练习的单词一样10个
-        const userWords = await UserWord
-            .find({ userId: userid })
-            .sort({ priority: -1 })
-            .limit(10);
-
-        const wordList = await Promise.all(userWords.map(async data => {
-            const wordObj = await Word.findById(data['wordId']);
-            if (!wordObj) {
-                return null;
-            }
-            return {
-                id: wordObj._id,
-                word: wordObj.word,
-                chineseMeaning: wordObj.chineseMeaning || '暂无中文释义',
-                phonetic: wordObj.phonetics && wordObj.phonetics[0] ? wordObj.phonetics[0].text : '',
-                status: data.status,
-                priority: data.priority,
-                reviewCounts: data.reviewCounts
-            };
-        }));
-
-        const filteredWordList = wordList.filter(item => item !== null);
-
-        res.json({
-            code: 200,
-            message: '获取成功',
-            data: {
-                words: filteredWordList,
-                total: filteredWordList.length
-            }
-        });
-
-    } catch (error) {
-        logger.error('获取练习单词列表失败:', error);
-        // console.error('获取练习单词列表失败:', error);
-        res.json({
-            code: 500,
-            message: '服务器内部错误'
-        });
-    }
-});
 
 module.exports = router;

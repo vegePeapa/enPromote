@@ -142,7 +142,7 @@ router.post('/changeinfo', async (req, res) => {
             return res.json({ code: 400, message: '请求体不能为空' });
         }
 
-        const { username, password, planStudyWords, planReviweWords, question_completed, ai_choose_completed } = req.body;
+        const { username, password, planStudyWords, planReviweWords, question_completed, ai_choose_completed,wordP,spellP,listenP,customsP, coverP } = req.body;
         const updateData = {};
 
         // 验证用户名
@@ -196,6 +196,13 @@ router.post('/changeinfo', async (req, res) => {
             }
             updateData.planReviweWords = reviewWords;
         }
+        // 关卡进度
+        allCostumPassage(wordP);
+        allCostumPassage(spellP);
+        allCostumPassage(listenP);
+        allCostumPassage(customsP);
+        allCostumPassage(coverP,true,userid);
+
 
         // 更新用户信息
         const updatedUser = await User.findByIdAndUpdate(
@@ -230,4 +237,27 @@ router.post('/changeinfo', async (req, res) => {
         return res.json({ code: 500, message: '服务器内部错误' });
     }
 })
+// 关卡进度函数
+async function allCostumPassage(cus, nextC = false, uesrid = "") {
+      if(cus !== undefined){
+            const cus = cus.toLowerCase() === "true" ? true : 
+                 str.toLowerCase() === "false" ? false : 
+                 false; // 默认值
+            updateData.cus =  cus    
+        }
+        //如果nextC 说明倒了最后一关，需要更新position进度
+        
+        if(cus === true && nextC === true){
+            const user = await User.findById(userid);
+           
+            const [letter, number] = user.position.split(':');
+            const nextLetter = String.fromCharCode(letter.charCodeAt(0) + 1);
+            user.position = `${nextLetter}:${number}`; 
+            const cet4 = uesr.cet4
+            // 重置关卡进度
+            cet4.wordP = cet4.spellP = cet4.listenP = cet4.customsP = cet4.coverP = false;
+            await user.save();
+        }
+       
+}
 module.exports = router;
