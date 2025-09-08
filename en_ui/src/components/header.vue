@@ -7,10 +7,12 @@
         <nav class="main-nav">
           <ul>
             <li><router-link to="/" class="active">首页</router-link></li>
-            <li><router-link to="/vocabulary">词汇练习</router-link></li>
-            <li><router-link to="/aiChatExer">AI对话</router-link></li>
-            <!-- <li><router-link to="/reading">阅读理解</router-link></li> -->
-            <li><router-link to="/listening">听力训练</router-link></li>
+            <li><router-link to="/chapters">学习闯关</router-link></li>
+            <li><router-link to="/adventure">快速练习</router-link></li>
+            <!-- 保留特殊访问链接，但不在主导航显示 -->
+            <!-- <li><router-link to="/vocabulary-legacy">词汇练习(旧)</router-link></li> -->
+            <!-- <li><router-link to="/aiChatExer-legacy">AI对话(旧)</router-link></li> -->
+            <!-- <li><router-link to="/listening-legacy">听力训练(旧)</router-link></li> -->
           </ul>
         </nav>
         <div class="user-actions">

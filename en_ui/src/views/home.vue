@@ -296,13 +296,15 @@ const startAiPreviewAnimation = () => {
   }, 2000);
 };
 
-// 导航函数
+// 导航函数 - 统一引导到adventure系统
 function goToVocabulary() {
-  router.push('/vocabulary');
+  // 引导用户到adventure系统的词汇练习
+  router.push('/chapters');
 }
 
 function goToAiChat() {
-  router.push('/aiChatExer');
+  // 引导用户到adventure系统的AI对话
+  router.push('/chapters');
 }
 
 function goToAdventure() {
@@ -310,15 +312,16 @@ function goToAdventure() {
 }
 
 function goToListening() {
-  router.push('/listening');
+  // 引导用户到adventure系统的听力训练
+  router.push('/chapters');
 }
 
 // 选择AI老师
 function selectTeacher(teacherType) {
   // 可以保存用户选择的老师类型到localStorage
   localStorage.setItem('selectedTeacher', teacherType);
-  // 直接跳转到AI对话页面
-  router.push('/aiChatExer');
+  // 引导用户到adventure系统的AI对话
+  router.push('/chapters');
 }
 </script>
 <script>

@@ -268,19 +268,14 @@ const handleLevelClick = (level, index) => {
 }
 
 const enterLevel = (levelType) => {
-  // 根据关卡类型跳转到对应页面
-  const routeMap = {
-    word: '/vocabulary',
-    spell: '/text',
-    listen: '/listening',
-    customs: '/text',
-    cover: '/aiChatExer'
-  }
-  
-  const route = routeMap[levelType]
-  if (route) {
-    router.push(route)
-  }
+  // 跳转到原来的 adventure.vue 页面，并传递关卡类型参数
+  router.push({
+    path: '/adventure-classic',
+    query: {
+      level: levelType,
+      chapter: currentChapter.value
+    }
+  })
 }
 
 const viewLevelDetails = (level) => {

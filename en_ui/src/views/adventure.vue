@@ -3,8 +3,21 @@
     <!-- 闯关地图 -->
     <div class="adventure-map" v-if="currentView === 'map'">
       <div class="map-header">
-        <h1 class="map-title">🗺️ 英语闯关之旅</h1>
-        <p class="map-subtitle">完成每个关卡，提升你的英语水平</p>
+        <div class="header-content">
+          <h1 class="map-title">🗺️ 英语闯关之旅</h1>
+          <p class="map-subtitle">完成每个关卡，提升你的英语水平</p>
+        </div>
+
+        <!-- 章节信息 -->
+        <div class="chapter-info" v-if="userInfo && userInfo.currentChapter">
+          <div class="current-chapter">
+            <span class="chapter-label">当前章节:</span>
+            <span class="chapter-name">{{ chapters[userInfo.currentChapter]?.name || '未知章节' }}</span>
+          </div>
+          <button class="chapter-switch-btn" @click="goToChapterSelection">
+            切换章节
+          </button>
+        </div>
       </div>
 
       <div class="levels-container">
@@ -277,7 +290,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { getUserInfo, changeInfo } from '@/api/auth'
+import { getUserInfo, changeInfo, switchChapter } from '@/api/auth'
+import { useRoute, useRouter } from 'vue-router'
 
 import VocabularyPractice from '@/components/VocabularyPractice.vue'
 import SpellingPractice from '@/components/SpellingPractice.vue'
@@ -285,9 +299,18 @@ import ListeningPractice from '@/components/ListeningPractice.vue'
 import AIQuestionPractice from '@/components/AIQuestionPractice.vue'
 import AIChatPractice from '@/components/AIChatPractice.vue'
 
+// 路由相关
+const route = useRoute()
+const router = useRouter()
+
 // 响应式数据
 const currentView = ref('map')
 const userInfo = ref(null)
+const currentChapter = ref('A') // 当前章节
+const chapters = ref({
+  A: { name: '酒店场景', scenario: 'hotel', color: '#4A90E2' },
+  B: { name: '餐厅场景', scenario: 'restaurant', color: '#F5A623' }
+})
 
 // 词汇练习相关数据
 const vocabularyWords = ref([])
@@ -330,7 +353,23 @@ const vocabularyProgress = computed(() => {
 })
 
 const overallProgress = computed(() => {
-  if (!userInfo.value) return 0
+  if (!userInfo.value || !userInfo.value.chapters) return 0
+
+  // 如果有多章节数据，使用当前章节的进度
+  if (userInfo.value.chapters && userInfo.value.currentChapter) {
+    const chapterProgress = userInfo.value.chapters[userInfo.value.currentChapter]
+    if (chapterProgress) {
+      let completed = 0
+      if (chapterProgress.wordP) completed++
+      if (chapterProgress.spellP) completed++
+      if (chapterProgress.listenP) completed++
+      if (chapterProgress.customsP) completed++
+      if (chapterProgress.coverP) completed++
+      return (completed / 5) * 100
+    }
+  }
+
+  // 兼容旧数据结构
   const cet4 = userInfo.value.cet4
   let completed = 0
   if (cet4.wordP) completed++
@@ -343,6 +382,22 @@ const overallProgress = computed(() => {
 
 const completedLevels = computed(() => {
   if (!userInfo.value) return 0
+
+  // 如果有多章节数据，使用当前章节的进度
+  if (userInfo.value.chapters && userInfo.value.currentChapter) {
+    const chapterProgress = userInfo.value.chapters[userInfo.value.currentChapter]
+    if (chapterProgress) {
+      let completed = 0
+      if (chapterProgress.wordP) completed++
+      if (chapterProgress.spellP) completed++
+      if (chapterProgress.listenP) completed++
+      if (chapterProgress.customsP) completed++
+      if (chapterProgress.coverP) completed++
+      return completed
+    }
+  }
+
+  // 兼容旧数据结构
   const cet4 = userInfo.value.cet4
   let completed = 0
   if (cet4.wordP) completed++
@@ -379,8 +434,22 @@ const getLevelStatus = (level) => {
 
 const isLevelUnlocked = (level) => {
   if (!userInfo.value) return false
-  const cet4 = userInfo.value.cet4
 
+  // 优先使用多章节数据
+  if (userInfo.value.chapters && userInfo.value.currentChapter) {
+    const chapterProgress = userInfo.value.chapters[userInfo.value.currentChapter]
+    if (chapterProgress) {
+      if (level === 'wordP') return true // 第一关总是解锁的
+      if (level === 'spellP') return chapterProgress.wordP // 第二关需要完成第一关
+      if (level === 'listenP') return chapterProgress.spellP // 第三关需要完成第二关
+      if (level === 'customsP') return chapterProgress.listenP // 第四关需要完成第三关
+      if (level === 'coverP') return chapterProgress.customsP // 第五关需要完成第四关
+      return false
+    }
+  }
+
+  // 兼容旧数据结构
+  const cet4 = userInfo.value.cet4
   if (level === 'wordP') return true // 第一关总是解锁的
   if (level === 'spellP') return cet4.wordP // 第二关需要完成第一关
   if (level === 'listenP') return cet4.spellP // 第三关需要完成第二关
@@ -618,17 +687,59 @@ const nextLevel = () => {
 const loadUserInfo = async () => {
   try {
     const response = await getUserInfo()
-    if (response.data) {
-      userInfo.value = response.data
+    const data = response.data || response // 兼容处理
+    if (data) {
+      userInfo.value = data
+
+      // 设置当前章节
+      if (data.currentChapter) {
+        currentChapter.value = data.currentChapter
+      }
+
+      console.log('用户信息:', userInfo.value)
+      console.log('当前章节:', currentChapter.value)
     }
   } catch (error) {
     console.error('获取用户信息失败:', error)
   }
 }
 
+// 切换章节
+const switchToChapter = async (chapter) => {
+  try {
+    const response = await switchChapter(chapter)
+    const data = response.data || response
+    if (data.code === 200) {
+      currentChapter.value = chapter
+      // 刷新用户信息
+      await loadUserInfo()
+    }
+  } catch (error) {
+    console.error('切换章节失败:', error)
+  }
+}
+
+// 跳转到章节选择页面
+const goToChapterSelection = () => {
+  router.push('/chapters')
+}
+
 // 页面加载时获取用户信息
-onMounted(() => {
-  loadUserInfo()
+onMounted(async () => {
+  await loadUserInfo()
+
+  // 检查路由参数，支持直接进入特定关卡
+  const levelParam = route.query.level
+  const chapterParam = route.query.chapter
+
+  if (levelParam && chapterParam) {
+    // 如果章节不同，先切换章节
+    if (chapterParam !== currentChapter.value) {
+      await switchToChapter(chapterParam)
+    }
+    // 直接进入指定关卡
+    enterLevel(levelParam)
+  }
 })
 </script>
 
@@ -645,9 +756,63 @@ onMounted(() => {
 }
 
 .map-header {
-  text-align: center;
-  color: white;
   margin-bottom: 2rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-content {
+  text-align: center;
+  flex: 1;
+}
+
+.chapter-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.current-chapter {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.chapter-label {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+.chapter-name {
+  font-size: 1.1rem;
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+}
+
+.chapter-switch-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.chapter-switch-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
 }
 
 .map-title {
@@ -941,6 +1106,24 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
+  .adventure-container {
+    padding: 1rem;
+  }
+
+  .map-header {
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+  }
+
+  .chapter-info {
+    align-items: center;
+  }
+
+  .current-chapter {
+    align-items: center;
+  }
+
   .level-path {
     flex-direction: column;
     gap: 1rem;

@@ -17,25 +17,29 @@ const router = createRouter({
             name: 'Home',
             component: () => import('../views/home.vue'),
         },
+        // 特殊访问路由 - 保留原有功能但不在主导航中显示
         {
-            path: '/vocabulary',
-            name: 'Vocabulary',
+            path: '/vocabulary-legacy',
+            name: 'VocabularyLegacy',
             component: () => import('../views/vocabulary.vue'),
+            meta: { requiresAuth: true, hidden: true }
         },
         {
-            path: '/aiChatExer',
-            name: 'aiChat',
-            component: () => import('../views/aiChatExer.vue'), // 暂时指向首页，后续开发
+            path: '/aiChatExer-legacy',
+            name: 'aiChatLegacy',
+            component: () => import('../views/aiChatExer.vue'),
+            meta: { requiresAuth: true, hidden: true }
+        },
+        {
+            path: '/listening-legacy',
+            name: 'ListeningLegacy',
+            component: () => import('../views/listening.vue'),
+            meta: { requiresAuth: true, hidden: true }
         },
         {
             path: '/reading',
             name: 'Reading',
             component: () => import('../views/home.vue'), // 暂时指向首页，后续开发
-        },
-        {
-            path: '/listening',
-            name: 'Listening',
-            component: () => import('../views/listening.vue'), // 暂时指向首页，后续开发
         },
         {
             path: '/text',
@@ -57,8 +61,14 @@ const router = createRouter({
         {
             path: '/adventure',
             name: 'Adventure',
-            component: () => import('../views/AdventureMap.vue'),
+            component: () => import('../views/adventure.vue'),
             meta: { requiresAuth: true }
+        },
+        {
+            path: '/adventure-map',
+            name: 'AdventureMap',
+            component: () => import('../views/AdventureMap.vue'),
+            meta: { requiresAuth: true, hidden: true }
         },
     ]
 })
