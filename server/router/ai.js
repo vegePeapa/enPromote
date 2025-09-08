@@ -7,6 +7,8 @@ const Word = require('../modules/Word');
 const { apiKey, baseUrl } = require('../config/serve');
 const { logger } = require('../utils/logger');
 const aiPromptJson = require("../ai/aiPrompt.json");
+const aiChatPrompts = require("../ai/aiChatPrompts.json");
+const AiChatSession = require('../modules/AiChatSession');
 const openai = new OpenAI({
     baseURL: baseUrl,
     apiKey
@@ -371,5 +373,293 @@ async function summarizeConversation(userid) {
 }
 
 
+
+// 开始任务导向的AI对话会话
+router.post('/startTaskChat', async (req, res) => {
+    try {
+        const userid = req.session.userid;
+        if (!userid) {
+            return res.json({ code: 401, message: '请先登录' });
+        }
+
+        const { scene } = req.body; // A 或 B
+        if (!scene || !aiChatPrompts[scene]) {
+            return res.json({ code: 400, message: '无效的场景参数' });
+        }
+
+        // 检查是否有未完成的会话
+        const existingSession = await AiChatSession.findOne({
+            userid: userid,
+            status: 'active'
+        });
+
+        if (existingSession) {
+            return res.json({
+                code: 200,
+                message: '继续现有会话',
+                data: {
+                    sessionId: existingSession.sessionId,
+                    scene: existingSession.scene,
+                    progress: existingSession.progress,
+                    tasks: existingSession.tasks
+                }
+            });
+        }
+
+        // 创建新的会话
+        const sessionId = `${userid}_${Date.now()}`;
+        const sceneConfig = aiChatPrompts[scene];
+        
+        const newSession = new AiChatSession({
+            userid: userid,
+            scene: scene,
+            sessionId: sessionId,
+            tasks: sceneConfig.tasks.map(task => ({
+                ...task,
+                usedWords: []
+            })),
+            completionCriteria: sceneConfig.completionCriteria,
+            progress: {
+                totalTasks: sceneConfig.tasks.length,
+                totalWords: sceneConfig.tasks.reduce((sum, task) => sum + task.requiredWords.length, 0)
+            }
+        });
+
+        await newSession.save();
+
+        // 发送初始系统消息
+        const welcomeMessage = `欢迎来到${sceneConfig.scene}场景！我是${sceneConfig.aiRole}，您是${sceneConfig.userRole}。让我们开始对话吧！`;
+        newSession.addMessage('assistant', welcomeMessage);
+        await newSession.save();
+
+        res.json({
+            code: 200,
+            message: '会话创建成功',
+            data: {
+                sessionId: sessionId,
+                scene: scene,
+                sceneInfo: {
+                    scene: sceneConfig.scene,
+                    aiRole: sceneConfig.aiRole,
+                    userRole: sceneConfig.userRole,
+                    taskDescription: sceneConfig.taskDescription
+                },
+                progress: newSession.progress,
+                tasks: newSession.tasks,
+                welcomeMessage: welcomeMessage
+            }
+        });
+
+    } catch (error) {
+        logger.error('创建任务对话会话失败:', error);
+        res.json({ code: 500, message: '服务器内部错误' });
+    }
+});
+
+// 任务导向的AI对话
+router.post('/taskChat', async (req, res) => {
+    try {
+        const userid = req.session.userid;
+        if (!userid) {
+            return res.json({ code: 401, message: '请先登录' });
+        }
+
+        const { sessionId, message: userMessage } = req.body;
+        if (!sessionId || !userMessage) {
+            return res.json({ code: 400, message: '缺少必要参数' });
+        }
+
+        // 查找会话
+        const session = await AiChatSession.findOne({
+            userid: userid,
+            sessionId: sessionId,
+            status: 'active'
+        });
+
+        if (!session) {
+            return res.json({ code: 404, message: '会话不存在或已结束' });
+        }
+
+        // 设置 SSE 响应头
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+
+        // 获取场景配置
+        const sceneConfig = aiChatPrompts[session.scene];
+        
+        // 分析用户消息中使用的单词
+        const usedWords = session.extractUsedWords(userMessage);
+        
+        // 确定当前任务
+        const currentTask = session.tasks.find(task => !task.completed) || session.tasks[0];
+        
+        // 添加用户消息
+        session.addMessage('user', userMessage, currentTask ? currentTask.id : null);
+
+        // 构建AI提示词
+        const systemPrompt = buildTaskSystemPrompt(sceneConfig, session, currentTask);
+        
+        // 调用AI
+        const completion = await openai.chat.completions.create({
+            messages: [
+                { role: "system", content: systemPrompt },
+                ...session.messages.slice(-10).map(msg => ({
+                    role: msg.role,
+                    content: msg.content
+                }))
+            ],
+            model: "deepseek-chat",
+            stream: true
+        });
+
+        let fullResult = '';
+        for await (const chunk of completion) {
+            const delta = chunk.choices[0]?.delta?.content || "";
+            res.write(`event: delta\n`);
+            res.write(`data: ${JSON.stringify({ content: delta })}\n\n`);
+            fullResult += delta;
+        }
+
+        // 添加AI回复
+        session.addMessage('assistant', fullResult, currentTask ? currentTask.id : null);
+
+        // 检查是否完成
+        const isCompleted = session.checkCompletion();
+        
+        if (isCompleted) {
+            session.status = 'completed';
+            session.endTime = new Date();
+            const report = session.generateCompletionReport();
+            
+            res.write(`event: completion\n`);
+            res.write(`data: ${JSON.stringify({ 
+                completed: true, 
+                report: report,
+                progress: session.progress 
+            })}\n\n`);
+        } else {
+            res.write(`event: progress\n`);
+            res.write(`data: ${JSON.stringify({ 
+                progress: session.progress,
+                currentTask: currentTask,
+                usedWords: usedWords
+            })}\n\n`);
+        }
+
+        res.write(`event: end\ndata: [DONE]\n\n`);
+        res.end();
+
+        await session.save();
+
+    } catch (error) {
+        logger.error('任务对话处理错误:', error);
+        res.status(500).json({ code: 500, message: '服务器内部错误' });
+    }
+});
+
+// 获取会话状态
+router.get('/getSessionStatus/:sessionId', async (req, res) => {
+    try {
+        const userid = req.session.userid;
+        const { sessionId } = req.params;
+
+        const session = await AiChatSession.findOne({
+            userid: userid,
+            sessionId: sessionId
+        });
+
+        if (!session) {
+            return res.json({ code: 404, message: '会话不存在' });
+        }
+
+        res.json({
+            code: 200,
+            data: {
+                sessionId: session.sessionId,
+                scene: session.scene,
+                status: session.status,
+                progress: session.progress,
+                tasks: session.tasks,
+                messages: session.messages,
+                completionReport: session.completionReport
+            }
+        });
+
+    } catch (error) {
+        logger.error('获取会话状态失败:', error);
+        res.json({ code: 500, message: '服务器内部错误' });
+    }
+});
+
+// 结束会话
+router.post('/endSession', async (req, res) => {
+    try {
+        const userid = req.session.userid;
+        const { sessionId } = req.body;
+
+        const session = await AiChatSession.findOne({
+            userid: userid,
+            sessionId: sessionId,
+            status: 'active'
+        });
+
+        if (!session) {
+            return res.json({ code: 404, message: '会话不存在或已结束' });
+        }
+
+        session.status = 'abandoned';
+        session.endTime = new Date();
+        const report = session.generateCompletionReport();
+        
+        await session.save();
+
+        res.json({
+            code: 200,
+            message: '会话已结束',
+            data: {
+                report: report,
+                progress: session.progress
+            }
+        });
+
+    } catch (error) {
+        logger.error('结束会话失败:', error);
+        res.json({ code: 500, message: '服务器内部错误' });
+    }
+});
+
+// 构建任务系统提示词
+function buildTaskSystemPrompt(sceneConfig, session, currentTask) {
+    const progress = session.progress;
+    const completedTasks = session.tasks.filter(task => task.completed);
+    
+    let prompt = `${sceneConfig.systemPrompt}\n\n`;
+    prompt += `${sceneConfig.rolePrompt}\n\n`;
+    
+    prompt += `当前会话进度：\n`;
+    prompt += `- 已完成任务：${progress.tasksCompleted}/${progress.totalTasks}\n`;
+    prompt += `- 已使用单词：${progress.wordsUsed}个\n`;
+    prompt += `- 对话轮次：${progress.turnCount}\n\n`;
+    
+    if (currentTask) {
+        prompt += `当前任务：${currentTask.name}\n`;
+        prompt += `任务描述：${currentTask.description}\n`;
+        prompt += `需要使用的单词：${currentTask.requiredWords.join(', ')}\n`;
+        prompt += `最少使用：${currentTask.minWords}个单词\n`;
+        prompt += `已使用单词：${currentTask.usedWords.join(', ') || '无'}\n\n`;
+    }
+    
+    prompt += `重要规则：\n`;
+    prompt += `1. 严格按照${sceneConfig.scene}场景进行对话\n`;
+    prompt += `2. 引导用户完成当前任务\n`;
+    prompt += `3. 鼓励用户使用指定的练习单词\n`;
+    prompt += `4. 当用户正确使用单词时给予积极反馈\n`;
+    prompt += `5. 保持角色一致性，你是${sceneConfig.aiRole}\n`;
+    prompt += `6. 对话要自然流畅，不要显得机械化\n`;
+    prompt += `7. 当所有必要任务完成后，自然地结束对话\n`;
+    
+    return prompt;
+}
 
 module.exports = router;

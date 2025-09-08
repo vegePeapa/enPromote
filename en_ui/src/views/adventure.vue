@@ -61,6 +61,20 @@
             </div>
             <div class="level-status">{{ getLevelStatus('customsP') }}</div>
           </div>
+
+          <!-- 连接线 -->
+          <div class="level-connector" :class="{ 'unlocked': isLevelUnlocked('coverP') }"></div>
+
+          <!-- 第五关：AI对话 -->
+          <div class="level-node" :class="getLevelClass('coverP')" @click="enterLevel('coverP')">
+            <div class="level-icon">💬</div>
+            <div class="level-info">
+              <h3 class="level-title">第五关</h3>
+              <p class="level-name">AI对话练习</p>
+              <div class="level-progress">{{ getLevelProgress('coverP') }}</div>
+            </div>
+            <div class="level-status">{{ getLevelStatus('coverP') }}</div>
+          </div>
         </div>
       </div>
 
@@ -70,7 +84,7 @@
         <div class="progress-bar">
           <div class="progress-fill" :style="{ width: overallProgress + '%' }"></div>
         </div>
-        <p>{{ completedLevels }}/4 关卡完成</p>
+        <p>{{ completedLevels }}/5 关卡完成</p>
       </div>
     </div>
 
@@ -228,6 +242,36 @@
         </div>
       </div>
     </div>
+
+    <!-- 第五关：AI对话 -->
+    <div class="level-content" v-if="currentView === 'level-coverP'">
+      <!-- 使用AI对话练习组件 -->
+      <AIChatPractice v-if="!showAIChatComplete" @complete="handleAIChatComplete" @exit="handleAIChatExit" />
+
+      <!-- 关卡完成 -->
+      <div class="level-complete" v-if="showAIChatComplete">
+        <div class="complete-icon">🎉</div>
+        <h3>第五关完成！</h3>
+        <p>恭喜你完成了AI对话练习！你已经完成了所有闯关挑战！</p>
+        <div class="complete-stats">
+          <div class="stat-item">
+            <span class="stat-number">{{ aiChatStats.messageCount }}</span>
+            <span class="stat-label">总消息数</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ aiChatStats.userMessages }}</span>
+            <span class="stat-label">你的消息</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ aiChatStats.aiMessages }}</span>
+            <span class="stat-label">AI回复</span>
+          </div>
+        </div>
+        <div class="complete-actions">
+          <button class="btn-primary" @click="backToMap">返回地图</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -239,6 +283,7 @@ import VocabularyPractice from '@/components/VocabularyPractice.vue'
 import SpellingPractice from '@/components/SpellingPractice.vue'
 import ListeningPractice from '@/components/ListeningPractice.vue'
 import AIQuestionPractice from '@/components/AIQuestionPractice.vue'
+import AIChatPractice from '@/components/AIChatPractice.vue'
 
 // 响应式数据
 const currentView = ref('map')
@@ -270,6 +315,10 @@ const showAIQuestionComplete = ref(false)
 const aiQuestionStats = ref({ total: 0, correct: 0, accuracy: 0 })
 const currentPositionType = ref('')
 
+// 第五关：AI对话相关数据
+const showAIChatComplete = ref(false)
+const aiChatStats = ref({ messageCount: 0, userMessages: 0, aiMessages: 0 })
+
 // 计算属性
 const currentVocabularyWord = computed(() => {
   return vocabularyWords.value[currentWordIndex.value]
@@ -288,7 +337,8 @@ const overallProgress = computed(() => {
   if (cet4.spellP) completed++
   if (cet4.listenP) completed++
   if (cet4.customsP) completed++
-  return (completed / 4) * 100
+  if (cet4.coverP) completed++
+  return (completed / 5) * 100
 })
 
 const completedLevels = computed(() => {
@@ -299,6 +349,7 @@ const completedLevels = computed(() => {
   if (cet4.spellP) completed++
   if (cet4.listenP) completed++
   if (cet4.customsP) completed++
+  if (cet4.coverP) completed++
   return completed
 })
 
@@ -334,6 +385,7 @@ const isLevelUnlocked = (level) => {
   if (level === 'spellP') return cet4.wordP // 第二关需要完成第一关
   if (level === 'listenP') return cet4.spellP // 第三关需要完成第二关
   if (level === 'customsP') return cet4.listenP // 第四关需要完成第三关
+  if (level === 'coverP') return cet4.customsP // 第五关需要完成第四关
 
   return false
 }
@@ -349,6 +401,8 @@ const enterLevel = (level) => {
     startListeningPractice()
   } else if (level === 'customsP') {
     startAIQuestionPractice()
+  } else if (level === 'coverP') {
+    startAIChatPractice()
   }
 }
 
@@ -521,6 +575,23 @@ const handleAIQuestionCorrect = (index) => {
 
 const handleAIQuestionIncorrect = (index) => {
   // AI题目练习错误处理
+}
+
+const startAIChatPractice = () => {
+  showAIChatComplete.value = false
+  aiChatStats.value = { messageCount: 0, userMessages: 0, aiMessages: 0 }
+  currentView.value = 'level-coverP'
+}
+
+const handleAIChatComplete = async (stats) => {
+  aiChatStats.value = stats
+  showAIChatComplete.value = true
+  await completeLevel('coverP')
+}
+
+const handleAIChatExit = () => {
+  // 用户主动退出对话，也算完成
+  handleAIChatComplete(aiChatStats.value)
 }
 
 const completeLevel = async (level) => {
