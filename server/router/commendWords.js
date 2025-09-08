@@ -18,7 +18,6 @@ router.get('/getReviewWord', async (req, res) => {
     }
     const user = await User.findById(userid);
     const curSence = user.cet4.position.split(':')[0];
-    console.log(`reviewLimit=${reviewLimit}`);
     //找出当前用户并符合场景的单词
     const userWords = await UserWord
         .find({ userId: userid, sence: curSence })

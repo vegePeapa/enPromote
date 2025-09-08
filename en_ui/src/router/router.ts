@@ -48,6 +48,12 @@ const router = createRouter({
             component: () => import('../views/profile.vue'),
             meta: { requiresAuth: true }
         },
+        {
+            path: '/adventure',
+            name: 'Adventure',
+            component: () => import('../views/adventure.vue'),
+            meta: { requiresAuth: true }
+        },
     ]
 })
 export default router

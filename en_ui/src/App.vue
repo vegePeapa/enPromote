@@ -4,7 +4,7 @@
   <router-view></router-view>
 
   <!-- 问卷组件 -->
-  <Question :show="showQuestionModal" @close="handleQuestionClose" @completed="handleQuestionCompleted" />
+  <!-- <Question :show="showQuestionModal" @close="handleQuestionClose" @completed="handleQuestionCompleted" /> -->
 </template>
 
 <script setup lang="ts">

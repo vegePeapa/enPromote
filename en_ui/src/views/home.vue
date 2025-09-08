@@ -16,9 +16,13 @@
             革命性的AI英语学习体验 - 24/7个人英语导师，实时纠错，个性化教学风格
           </p>
           <div class="hero-actions">
-            <button class="btn-primary-large" @click="goToAiChat">
+            <button class="btn-primary-large" @click="goToAdventure">
+              <span class="btn-icon">🗺️</span>
+              开始闯关
+            </button>
+            <button class="btn-secondary-outline" @click="goToAiChat">
               <span class="btn-icon">💬</span>
-              开始AI对话
+              AI对话
             </button>
             <button class="btn-secondary-outline" @click="showAiPreview = true">
               <span class="btn-icon">👁️</span>
@@ -299,6 +303,10 @@ function goToVocabulary() {
 
 function goToAiChat() {
   router.push('/aiChatExer');
+}
+
+function goToAdventure() {
+  router.push('/adventure');
 }
 
 function goToListening() {
