@@ -33,6 +33,20 @@
             </div>
             <div class="level-status">{{ getLevelStatus('spellP') }}</div>
           </div>
+
+          <!-- 连接线 -->
+          <div class="level-connector" :class="{ 'unlocked': isLevelUnlocked('listenP') }"></div>
+
+          <!-- 第三关：听力训练 -->
+          <div class="level-node" :class="getLevelClass('listenP')" @click="enterLevel('listenP')">
+            <div class="level-icon">🎧</div>
+            <div class="level-info">
+              <h3 class="level-title">第三关</h3>
+              <p class="level-name">听力训练</p>
+              <div class="level-progress">{{ getLevelProgress('listenP') }}</div>
+            </div>
+            <div class="level-status">{{ getLevelStatus('listenP') }}</div>
+          </div>
         </div>
       </div>
 
@@ -42,7 +56,7 @@
         <div class="progress-bar">
           <div class="progress-fill" :style="{ width: overallProgress + '%' }"></div>
         </div>
-        <p>{{ completedLevels }}/2 关卡完成</p>
+        <p>{{ completedLevels }}/3 关卡完成</p>
       </div>
     </div>
 
@@ -121,6 +135,45 @@
         </div>
       </div>
     </div>
+
+    <!-- 第三关：听力训练 -->
+    <div class="level-content" v-if="currentView === 'level-listenP'">
+      <div class="level-header">
+        <button class="back-btn" @click="backToMap">← 返回地图</button>
+        <div class="level-info">
+          <h2>🎧 第三关：听力训练</h2>
+          <p>听单词发音，根据听到的内容拼写出正确的单词</p>
+        </div>
+      </div>
+
+      <!-- 使用听力练习组件 -->
+      <ListeningPractice v-if="!showListeningComplete" :words="listeningWords" @complete="handleListeningComplete"
+        @correct="handleListeningCorrect" @incorrect="handleListeningIncorrect" />
+
+      <!-- 关卡完成 -->
+      <div class="level-complete" v-if="showListeningComplete">
+        <div class="complete-icon">🎉</div>
+        <h3>第三关完成！</h3>
+        <p>你已经完成了听力训练，练习了 {{ listeningStats.total }} 个单词</p>
+        <div class="complete-stats">
+          <div class="stat-item">
+            <span class="stat-number">{{ listeningStats.correct }}</span>
+            <span class="stat-label">正确</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ listeningStats.total - listeningStats.correct }}</span>
+            <span class="stat-label">错误</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ listeningStats.accuracy }}%</span>
+            <span class="stat-label">准确率</span>
+          </div>
+        </div>
+        <div class="complete-actions">
+          <button class="btn-primary" @click="backToMap">返回地图</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -130,6 +183,7 @@ import { getUserInfo, changeInfo } from '@/api/auth'
 
 import VocabularyPractice from '@/components/VocabularyPractice.vue'
 import SpellingPractice from '@/components/SpellingPractice.vue'
+import ListeningPractice from '@/components/ListeningPractice.vue'
 
 // 响应式数据
 const currentView = ref('map')
@@ -150,6 +204,11 @@ const showSpellingComplete = ref(false)
 const correctSpellings = ref(0)
 const incorrectSpellings = ref(0)
 
+// 听力练习相关数据
+const listeningWords = ref([])
+const showListeningComplete = ref(false)
+const listeningStats = ref({ total: 0, correct: 0, accuracy: 0 })
+
 // 计算属性
 const currentVocabularyWord = computed(() => {
   return vocabularyWords.value[currentWordIndex.value]
@@ -166,7 +225,8 @@ const overallProgress = computed(() => {
   let completed = 0
   if (cet4.wordP) completed++
   if (cet4.spellP) completed++
-  return (completed / 2) * 100
+  if (cet4.listenP) completed++
+  return (completed / 3) * 100
 })
 
 const completedLevels = computed(() => {
@@ -175,6 +235,7 @@ const completedLevels = computed(() => {
   let completed = 0
   if (cet4.wordP) completed++
   if (cet4.spellP) completed++
+  if (cet4.listenP) completed++
   return completed
 })
 
@@ -208,6 +269,7 @@ const isLevelUnlocked = (level) => {
 
   if (level === 'wordP') return true // 第一关总是解锁的
   if (level === 'spellP') return cet4.wordP // 第二关需要完成第一关
+  if (level === 'listenP') return cet4.spellP // 第三关需要完成第二关
 
   return false
 }
@@ -219,6 +281,8 @@ const enterLevel = (level) => {
     startVocabularyPractice()
   } else if (level === 'spellP') {
     startSpellingPractice()
+  } else if (level === 'listenP') {
+    startListeningPractice()
   }
 }
 
@@ -322,6 +386,39 @@ const handleSpellingCorrect = (index) => {
 
 const handleSpellingIncorrect = (index) => {
   incorrectSpellings.value++
+}
+
+const startListeningPractice = async () => {
+  try {
+    // 使用getReviewWord获取需要听力练习的单词
+    const response = await fetch('/api/commendWords/getReviewWord')
+    const data = await response.json()
+
+    if (data.code === 200) {
+      // 限制听力练习单词数量，最多20个
+      const words = data.data.words || []
+      listeningWords.value = words.slice(0, 20)
+      showListeningComplete.value = false
+      listeningStats.value = { total: 0, correct: 0, accuracy: 0 }
+      currentView.value = 'level-listenP'
+    }
+  } catch (error) {
+    console.error('获取听力单词列表失败:', error)
+  }
+}
+
+const handleListeningComplete = async (stats) => {
+  listeningStats.value = stats
+  showListeningComplete.value = true
+  await completeLevel('listenP')
+}
+
+const handleListeningCorrect = (index) => {
+  // 听力练习正确处理
+}
+
+const handleListeningIncorrect = (index) => {
+  // 听力练习错误处理
 }
 
 const completeLevel = async (level) => {

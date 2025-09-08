@@ -8,17 +8,17 @@
             "sence": "A"
         },
         {
-            "word": "check-in",
-            "mean": "办理入住",
-            "phonetic_symbol": "/ˈtʃek ɪn/",
-            "initial": "C",
+            "word": "booking",
+            "mean": "预订",
+            "phonetic_symbol": "/ˈbʊkɪŋ/",
+            "initial": "B",
             "sence": "A"
         },
         {
-            "word": "front desk",
-            "mean": "前台",
-            "phonetic_symbol": "/frʌnt desk/",
-            "initial": "F",
+            "word": "reception",
+            "mean": "接待处",
+            "phonetic_symbol": "/rɪˈsepʃn/",
+            "initial": "R",
             "sence": "A"
         },
         {
@@ -36,10 +36,10 @@
             "sence": "A"
         },
         {
-            "word": "key card",
-            "mean": "房卡",
-            "phonetic_symbol": "/kiː kɑːrd/",
-            "initial": "K",
+            "word": "vacancy",
+            "mean": "空房",
+            "phonetic_symbol": "/ˈveɪkənsi/",
+            "initial": "V",
             "sence": "A"
         },
         {
@@ -99,10 +99,10 @@
             "sence": "A"
         },
         {
-            "word": "non-smoking",
-            "mean": "无烟的",
-            "phonetic_symbol": "/nɒn ˈsməʊkɪŋ/",
-            "initial": "N",
+            "word": "single room",
+            "mean": "单人间",
+            "phonetic_symbol": "/ˌsɪŋɡl ˈruːm/",
+            "initial": "S",
             "sence": "A"
         }
     ],
@@ -122,10 +122,10 @@
             "sence": "B"
         },
         {
-            "word": "main course",
-            "mean": "主菜",
-            "phonetic_symbol": "/meɪn kɔːrs/",
-            "initial": "M",
+            "word": "chef",
+            "mean": "厨师",
+            "phonetic_symbol": "/ʃef/",
+            "initial": "C",
             "sence": "B"
         },
         {

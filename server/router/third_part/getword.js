@@ -8,14 +8,15 @@ const { proxyurl, proxyProt } = require('../../config/serve');
 const proxy = `http://${proxyurl}:${proxyProt}`;
 const httpsAgent = new HttpsProxyAgent(proxy);
 const Word = require('../../modules/Word');
+const User = require('../../modules/User')
 
 // 缓存CET-4.json数据，避免重复读取
 let cet4Cache = null;
 
-// 按需加载word/CET-4.json中特定字母的单词
+// 按需加载wvocabulaty/CET-4.json中特定字母的单词
 async function loadCet4WordsByInitial(initial) {
     try {
-        const cet4Path = path.join(__dirname, '..', '..', 'word', 'CET-4.json');
+        const cet4Path = path.join(__dirname, '..', '..', 'vocabulary', 'CET-4.json');
 
         // 如果缓存为空，则初始化缓存
         if (!cet4Cache) {
@@ -33,7 +34,7 @@ async function loadCet4WordsByInitial(initial) {
     }
 }
 
-async function getWordFromApi(word) {
+async function getWordFromApi(word, wordSence) {
     console.log(`正在查询单词: ${word}`);
     // 先从数据库中查询
     const wordInfo = await Word.findOne({ word: word.toLowerCase() });
@@ -120,10 +121,12 @@ async function getWordFromApi(word) {
 
             // 添加中文释义
             try {
-                const initial = word.slice(0, 1).toUpperCase();
-                const cet4Words = await loadCet4WordsByInitial(initial);
+                const sence = wordSence; // 用户当前的场景，如 'A'
+                const cet4Words = await loadCet4WordsByInitial(sence);
 
                 // 查找匹配的单词
+                console.log(`在场景 ${sence} 中查找单词 ${word}，该场景共有 ${cet4Words.length} 个单词`);
+
                 const matchedWord = cet4Words.find(item =>
                     typeof item === 'object' &&
                     item.word &&
@@ -134,7 +137,33 @@ async function getWordFromApi(word) {
                     mergedData.chineseMeaning = matchedWord.mean;
                     console.log(`找到单词 ${word} 的中文释义: ${matchedWord.mean}`);
                 } else {
-                    console.log(`未找到单词 ${word} 的中文释义`);
+                    // 如果在当前场景找不到，尝试在所有场景中查找
+                    console.log(`在场景 ${sence} 中未找到单词 ${word}，尝试在所有场景中查找`);
+                    
+                    const allScenes = ['A', 'B']; // 根据CET-4.json实际场景
+                    let foundInOtherScene = false;
+                    
+                    for (const scene of allScenes) {
+                        if (scene === sence) continue; // 跳过已经查找过的场景
+                        
+                        const sceneWords = await loadCet4WordsByInitial(scene);
+                        const wordInScene = sceneWords.find(item =>
+                            typeof item === 'object' &&
+                            item.word &&
+                            item.word.toLowerCase() === word.toLowerCase()
+                        );
+                        
+                        if (wordInScene && wordInScene.mean) {
+                            mergedData.chineseMeaning = wordInScene.mean;
+                            console.log(`在场景 ${scene} 中找到单词 ${word} 的中文释义: ${wordInScene.mean}`);
+                            foundInOtherScene = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!foundInOtherScene) {
+                        console.log(`在所有场景中都未找到单词 ${word} 的中文释义`);
+                    }
                 }
             } catch (error) {
                 console.error('获取中文释义失败:', error);
@@ -177,12 +206,42 @@ async function getWordFromApi(word) {
 }
 
 router.get('/getwordinfo', async (req, res) => {
-    const word = req.query.word;
+    const word = req.query.word ? req.query.word.trim() : '';
+    const userid = req.session.userid;
+
+    // 检查 userid 是否存在
+    if (!userid) {
+        return res.json({ code: 401, message: '用户未登录或会话已过期' });
+    }
+
+    // 正确的链式调用方式
+    const user = await User.findOne({ _id: userid });
+    if (!user) {
+        return res.json({ code: 404, message: '用户不存在' });
+    }
+
+    // 安全地获取用户场景，添加默认值和错误处理
+    let userSence = 'A'; // 默认场景
+    
+    try {
+        if (user.cet4 && user.cet4.position && typeof user.cet4.position === 'string') {
+            const positionParts = user.cet4.position.split(':');
+            if (positionParts.length > 0 && positionParts[0]) {
+                userSence = positionParts[0];
+            }
+        }
+    } catch (error) {
+        console.error('获取用户场景失败，使用默认场景A:', error);
+        userSence = 'A';
+    }
+
+    console.log(`scence=${userSence}`);
+
     if (!word) {
         return res.json({ code: 400, message: '请输入单词' });
     }
     try {
-        const data = await getWordFromApi(word);
+        const data = await getWordFromApi(word, userSence);
         res.send(data);
     } catch (err) {
         console.error('API错误:', err.message);
