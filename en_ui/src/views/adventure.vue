@@ -47,6 +47,20 @@
             </div>
             <div class="level-status">{{ getLevelStatus('listenP') }}</div>
           </div>
+
+          <!-- 连接线 -->
+          <div class="level-connector" :class="{ 'unlocked': isLevelUnlocked('customsP') }"></div>
+
+          <!-- 第四关：AI生成题目 -->
+          <div class="level-node" :class="getLevelClass('customsP')" @click="enterLevel('customsP')">
+            <div class="level-icon">🤖</div>
+            <div class="level-info">
+              <h3 class="level-title">第四关</h3>
+              <p class="level-name">AI生成题目</p>
+              <div class="level-progress">{{ getLevelProgress('customsP') }}</div>
+            </div>
+            <div class="level-status">{{ getLevelStatus('customsP') }}</div>
+          </div>
         </div>
       </div>
 
@@ -56,7 +70,7 @@
         <div class="progress-bar">
           <div class="progress-fill" :style="{ width: overallProgress + '%' }"></div>
         </div>
-        <p>{{ completedLevels }}/3 关卡完成</p>
+        <p>{{ completedLevels }}/4 关卡完成</p>
       </div>
     </div>
 
@@ -174,6 +188,46 @@
         </div>
       </div>
     </div>
+
+    <!-- 第四关：AI生成题目 -->
+    <div class="level-content" v-if="currentView === 'level-customsP'">
+      <div class="level-header">
+        <button class="back-btn" @click="backToMap">← 返回地图</button>
+        <div class="level-info">
+          <h2>🤖 第四关：AI生成题目</h2>
+          <p>AI根据你的学习情况生成个性化题目，检验学习效果</p>
+        </div>
+      </div>
+
+      <!-- 使用AI题目练习组件 -->
+      <AIQuestionPractice v-if="!showAIQuestionComplete" :positionType="currentPositionType" :wordList="aiQuestionWords"
+        @complete="handleAIQuestionComplete" @correct="handleAIQuestionCorrect"
+        @incorrect="handleAIQuestionIncorrect" />
+
+      <!-- 关卡完成 -->
+      <div class="level-complete" v-if="showAIQuestionComplete">
+        <div class="complete-icon">🎉</div>
+        <h3>第四关完成！</h3>
+        <p>你已经完成了AI生成题目练习，共完成 {{ aiQuestionStats.total }} 道题目</p>
+        <div class="complete-stats">
+          <div class="stat-item">
+            <span class="stat-number">{{ aiQuestionStats.correct }}</span>
+            <span class="stat-label">正确</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ aiQuestionStats.total - aiQuestionStats.correct }}</span>
+            <span class="stat-label">错误</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ aiQuestionStats.accuracy }}%</span>
+            <span class="stat-label">准确率</span>
+          </div>
+        </div>
+        <div class="complete-actions">
+          <button class="btn-primary" @click="backToMap">返回地图</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -184,6 +238,7 @@ import { getUserInfo, changeInfo } from '@/api/auth'
 import VocabularyPractice from '@/components/VocabularyPractice.vue'
 import SpellingPractice from '@/components/SpellingPractice.vue'
 import ListeningPractice from '@/components/ListeningPractice.vue'
+import AIQuestionPractice from '@/components/AIQuestionPractice.vue'
 
 // 响应式数据
 const currentView = ref('map')
@@ -209,6 +264,12 @@ const listeningWords = ref([])
 const showListeningComplete = ref(false)
 const listeningStats = ref({ total: 0, correct: 0, accuracy: 0 })
 
+// AI题目练习相关数据
+const aiQuestionWords = ref([])
+const showAIQuestionComplete = ref(false)
+const aiQuestionStats = ref({ total: 0, correct: 0, accuracy: 0 })
+const currentPositionType = ref('')
+
 // 计算属性
 const currentVocabularyWord = computed(() => {
   return vocabularyWords.value[currentWordIndex.value]
@@ -226,7 +287,8 @@ const overallProgress = computed(() => {
   if (cet4.wordP) completed++
   if (cet4.spellP) completed++
   if (cet4.listenP) completed++
-  return (completed / 3) * 100
+  if (cet4.customsP) completed++
+  return (completed / 4) * 100
 })
 
 const completedLevels = computed(() => {
@@ -236,6 +298,7 @@ const completedLevels = computed(() => {
   if (cet4.wordP) completed++
   if (cet4.spellP) completed++
   if (cet4.listenP) completed++
+  if (cet4.customsP) completed++
   return completed
 })
 
@@ -270,6 +333,7 @@ const isLevelUnlocked = (level) => {
   if (level === 'wordP') return true // 第一关总是解锁的
   if (level === 'spellP') return cet4.wordP // 第二关需要完成第一关
   if (level === 'listenP') return cet4.spellP // 第三关需要完成第二关
+  if (level === 'customsP') return cet4.listenP // 第四关需要完成第三关
 
   return false
 }
@@ -283,6 +347,8 @@ const enterLevel = (level) => {
     startSpellingPractice()
   } else if (level === 'listenP') {
     startListeningPractice()
+  } else if (level === 'customsP') {
+    startAIQuestionPractice()
   }
 }
 
@@ -419,6 +485,42 @@ const handleListeningCorrect = (index) => {
 
 const handleListeningIncorrect = (index) => {
   // 听力练习错误处理
+}
+
+const startAIQuestionPractice = async () => {
+  try {
+    // 获取当前用户位置和单词列表
+    const position = userInfo.value.cet4.position
+    const [letter] = position.split(':')
+    currentPositionType.value = letter
+
+    // 获取复习单词列表用于AI生成题目
+    const response = await fetch('/api/commendWords/getReviewWord')
+    const data = await response.json()
+
+    if (data.code === 200) {
+      aiQuestionWords.value = data.data.words || []
+      showAIQuestionComplete.value = false
+      aiQuestionStats.value = { total: 0, correct: 0, accuracy: 0 }
+      currentView.value = 'level-customsP'
+    }
+  } catch (error) {
+    console.error('获取AI题目单词列表失败:', error)
+  }
+}
+
+const handleAIQuestionComplete = async (stats) => {
+  aiQuestionStats.value = stats
+  showAIQuestionComplete.value = true
+  await completeLevel('customsP')
+}
+
+const handleAIQuestionCorrect = (index) => {
+  // AI题目练习正确处理
+}
+
+const handleAIQuestionIncorrect = (index) => {
+  // AI题目练习错误处理
 }
 
 const completeLevel = async (level) => {
