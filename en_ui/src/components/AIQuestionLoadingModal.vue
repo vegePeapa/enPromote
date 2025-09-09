@@ -6,7 +6,7 @@
         <h2>AI正在为您生成专属题目</h2>
         <p class="subtitle">基于您的单词掌握情况，定制个性化练习</p>
       </div>
-      
+
       <div class="loading-content">
         <div class="loading-animation">
           <div class="loading-dots">
@@ -15,16 +15,16 @@
             <span></span>
           </div>
         </div>
-        
+
         <div class="loading-text">
           <p class="current-message">{{ currentMessage }}</p>
         </div>
-        
+
         <div class="progress-bar">
           <div class="progress-fill" :style="{ width: progress + '%' }"></div>
         </div>
       </div>
-      
+
       <div class="loading-footer" v-if="isCompleted">
         <div class="success-icon">✨</div>
         <p class="success-text">题目生成完成！准备开始后续关卡</p>
@@ -73,13 +73,13 @@ const startLoading = () => {
   progress.value = 0
   isCompleted.value = false
   currentMessage.value = loadingMessages[0]
-  
+
   // 消息轮换
   messageInterval = setInterval(() => {
     currentMessageIndex = (currentMessageIndex + 1) % loadingMessages.length
     currentMessage.value = loadingMessages[currentMessageIndex]
-  }, 2000)
-  
+  }, 5000)
+
   // 进度条动画
   progressInterval = setInterval(() => {
     if (progress.value < 90) {
@@ -158,6 +158,7 @@ import { toRefs, watch } from 'vue'
     opacity: 0;
     transform: translateY(-50px) scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -175,12 +176,19 @@ import { toRefs, watch } from 'vue'
 }
 
 @keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {
+
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
     transform: translateY(0);
   }
+
   40% {
     transform: translateY(-10px);
   }
+
   60% {
     transform: translateY(-5px);
   }
@@ -219,13 +227,22 @@ import { toRefs, watch } from 'vue'
   animation: loadingDot 1.4s infinite ease-in-out both;
 }
 
-.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
-.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+.loading-dots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.loading-dots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
 
 @keyframes loadingDot {
-  0%, 80%, 100% {
+
+  0%,
+  80%,
+  100% {
     transform: scale(0);
   }
+
   40% {
     transform: scale(1);
   }
@@ -262,6 +279,7 @@ import { toRefs, watch } from 'vue'
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -275,8 +293,15 @@ import { toRefs, watch } from 'vue'
 }
 
 @keyframes sparkle {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.2);
+  }
 }
 
 .success-text {
@@ -309,11 +334,11 @@ import { toRefs, watch } from 'vue'
     padding: 2rem;
     margin: 1rem;
   }
-  
+
   .ai-avatar {
     font-size: 3rem;
   }
-  
+
   .loading-header h2 {
     font-size: 1.3rem;
   }
