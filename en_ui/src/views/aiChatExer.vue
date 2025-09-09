@@ -147,7 +147,7 @@
                             <option value="gentle">😊 彬彬有礼</option>
                             <option value="blunt">🔥 脾气火爆</option>
                             <option value="tsundere">😤 傲娇毒舌</option>
-                            <option value="cold">❄️ 高冷精英</option>
+                            <option value="cold">❄️ 超级人机</option>
                             <option value="exaggerated">🎭 夸张幽默</option>
                         </select>
                     </div>
@@ -386,9 +386,9 @@ const personalityOptions = ref([
     },
     {
         value: 'cold',
-        name: '高冷精英',
+        name: '高冷?精英',
         icon: '❄️',
-        description: '专业严谨，追求完美的教学态度'
+        description: '是人机'
     },
     {
         value: 'exaggerated',

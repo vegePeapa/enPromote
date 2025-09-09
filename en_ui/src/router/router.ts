@@ -19,15 +19,15 @@ const router = createRouter({
         },
         // 特殊访问路由 - 保留原有功能但不在主导航中显示
         {
-            path: '/vocabulary-legacy',
-            name: 'VocabularyLegacy',
-            component: () => import('../views/vocabulary.vue'),
+            path: '/aiChatExer',
+            name: 'aiChat',
+            component: () => import('../views/aiChatExer.vue'),
             meta: { requiresAuth: true, hidden: true }
         },
         {
-            path: '/aiChatExer-legacy',
-            name: 'aiChatLegacy',
-            component: () => import('../views/aiChatExer.vue'),
+            path: '/vocabulary-legacy',
+            name: 'VocabularyLegacy',
+            component: () => import('../views/vocabulary.vue'),
             meta: { requiresAuth: true, hidden: true }
         },
         {
