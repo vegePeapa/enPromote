@@ -260,7 +260,7 @@
     <!-- 第五关：AI对话 -->
     <div class="level-content" v-if="currentView === 'level-coverP'">
       <!-- 使用AI对话练习组件 -->
-      <AIChatPractice v-if="!showAIChatComplete" @complete="handleAIChatComplete" @exit="handleAIChatExit" />
+      <AIChatPractice v-if="!showAIChatComplete" :chapter="currentChapter" @complete="handleAIChatComplete" @exit="handleAIChatExit" />
 
       <!-- 关卡完成 -->
       <div class="level-complete" v-if="showAIChatComplete">
