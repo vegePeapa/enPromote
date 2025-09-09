@@ -227,16 +227,10 @@
       </div>
 
       <!-- 使用AI题目练习组件 -->
-      <AIQuestionPractice
-        v-if="!showAIQuestionComplete"
-        :positionType="currentPositionType"
-        :wordList="aiQuestionWords"
-        :preloadedQuestions="preloadedAIQuestions"
-        :usePreloaded="isAIQuestionsPreloaded"
-        @complete="handleAIQuestionComplete"
-        @correct="handleAIQuestionCorrect"
-        @incorrect="handleAIQuestionIncorrect"
-        @answer="handleAIQuestionAnswer" />
+      <AIQuestionPractice v-if="!showAIQuestionComplete" :positionType="currentPositionType" :wordList="aiQuestionWords"
+        :preloadedQuestions="preloadedAIQuestions" :usePreloaded="isAIQuestionsPreloaded"
+        @complete="handleAIQuestionComplete" @correct="handleAIQuestionCorrect" @incorrect="handleAIQuestionIncorrect"
+        @answer="handleAIQuestionAnswer" @questionsGenerated="handleQuestionsGenerated" />
 
       <!-- 关卡完成 -->
       <div class="level-complete" v-if="showAIQuestionComplete">
@@ -368,6 +362,21 @@ const currentVocabularyWord = computed(() => {
 const vocabularyProgress = computed(() => {
   if (vocabularyWords.value.length === 0) return 0
   return (currentWordIndex.value / vocabularyWords.value.length) * 100
+})
+
+// 答题记录统计
+const answerStats = computed(() => {
+  const answers = aiQuestionAnswers.value
+  const total = answers.length
+  const correct = answers.filter(a => a.isCorrect).length
+  const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0
+
+  return {
+    total,
+    correct,
+    incorrect: total - correct,
+    accuracy
+  }
 })
 
 const overallProgress = computed(() => {
@@ -502,7 +511,7 @@ const startVocabularyPractice = async () => {
   try {
     // 使用当前章节获取单词列表
     const currentChapter = userInfo.value.currentChapter || 'A'
-    
+
     // 获取单词列表
     const response = await fetch(`/api/word/getWordList?chapter=${currentChapter}&index=0`)
     const data = await response.json()
@@ -533,7 +542,7 @@ const startSpellingPractice = async () => {
   try {
     // 使用当前章节获取单词列表
     const currentChapter = userInfo.value.currentChapter || 'A'
-    
+
     // 获取单词列表（复用词汇练习的单词）
     const response = await fetch(`/api/word/getWordList?chapter=${currentChapter}&index=0`)
     const data = await response.json()
@@ -832,6 +841,25 @@ const handleAIQuestionAnswer = (answerData) => {
   localStorage.setItem('aiQuestionAnswers', JSON.stringify(savedAnswers))
 
   console.log('答题记录已保存:', answerData)
+  console.log('📊 当前答题统计:', answerStats.value)
+}
+
+// 处理AI题目生成完成事件
+const handleQuestionsGenerated = (questionsData) => {
+  console.log('🎯 收到AI题目生成完成通知:', questionsData)
+
+  // 将实时生成的题目也存储到localStorage，就像预加载题目一样
+  localStorage.setItem('preloadedAIQuestions', JSON.stringify({
+    data: questionsData.data,
+    chapter: questionsData.chapter || currentChapter.value,
+    timestamp: questionsData.timestamp
+  }))
+
+  // 更新本地状态
+  preloadedAIQuestions.value = questionsData.data
+  isAIQuestionsPreloaded.value = true
+
+  console.log('✅ 实时生成的AI题目已存储到localStorage')
 }
 
 const startAIChatPractice = () => {
@@ -936,12 +964,34 @@ const checkPreloadedQuestions = () => {
   }
 }
 
+// 检查localStorage中的答题记录
+const checkSavedAnswers = () => {
+  try {
+    const savedAnswers = localStorage.getItem('aiQuestionAnswers')
+    if (savedAnswers) {
+      const parsed = JSON.parse(savedAnswers)
+      // 过滤当前章节的答题记录
+      const currentChapterAnswers = parsed.filter(answer =>
+        answer.chapter === currentChapter.value
+      )
+      aiQuestionAnswers.value = currentChapterAnswers
+      console.log(`恢复了 ${currentChapterAnswers.length} 条答题记录`)
+    }
+  } catch (error) {
+    console.error('检查答题记录失败:', error)
+    localStorage.removeItem('aiQuestionAnswers')
+  }
+}
+
 // 页面加载时获取用户信息
 onMounted(async () => {
   await loadUserInfo()
 
   // 检查预加载题目
   checkPreloadedQuestions()
+
+  // 检查答题记录
+  checkSavedAnswers()
 
   // 检查路由参数，支持直接进入特定关卡
   const levelParam = route.query.level

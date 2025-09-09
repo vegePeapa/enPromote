@@ -151,7 +151,7 @@ const props = defineProps({
 })
 
 // Emits
-const emit = defineEmits(['complete', 'correct', 'incorrect', 'answer'])
+const emit = defineEmits(['complete', 'correct', 'incorrect', 'answer', 'questionsGenerated'])
 
 // 响应式数据
 const loading = ref(false)
@@ -226,6 +226,15 @@ const generateQuestions = async () => {
       audioScript.value = data.data.audio_script || ''
       questions.value = data.data.fill_in_the_blanks || []
       resetPractice()
+
+      // 通知父组件题目已生成，用于存储
+      emit('questionsGenerated', {
+        data: data.data,
+        chapter: data.chapter || props.positionType,
+        timestamp: Date.now()
+      })
+
+      console.log('✅ AI题目实时生成成功，已通知父组件存储')
     } else {
       console.error('生成题目失败:', data.message)
     }
