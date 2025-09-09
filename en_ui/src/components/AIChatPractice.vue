@@ -390,8 +390,8 @@ const sendMessage = async () => {
   }
   messages.value.push(userMsg)
 
-  // 保存用户消息到数据库
-  await saveChatMessage('user', userMessage)
+  // 用户消息会在后端taskChat中自动保存，这里不需要重复保存
+  // await saveChatMessage('user', userMessage)
 
   // 添加AI消息占位符
   const aiMessageId = Date.now() + 1
@@ -508,8 +508,8 @@ const sendMessage = async () => {
             const aiMessage = messages.value.find(msg => msg.id === aiMessageId)
             if (aiMessage) {
               aiMessage.streaming = false
-              // 保存AI消息到数据库
-              await saveChatMessage('assistant', aiMessage.content)
+              // AI消息会在后端taskChat中自动保存，这里不需要重复保存
+              // await saveChatMessage('assistant', aiMessage.content)
             }
             break
           }
