@@ -227,9 +227,15 @@
       </div>
 
       <!-- 使用AI题目练习组件 -->
-      <AIQuestionPractice v-if="!showAIQuestionComplete" :positionType="currentPositionType" :wordList="aiQuestionWords"
-        :preloadedQuestions="preloadedAIQuestions" :usePreloaded="isAIQuestionsPreloaded"
-        @complete="handleAIQuestionComplete" @correct="handleAIQuestionCorrect" @incorrect="handleAIQuestionIncorrect"
+      <AIQuestionPractice
+        v-if="!showAIQuestionComplete"
+        :positionType="currentPositionType"
+        :wordList="aiQuestionWords"
+        :preloadedQuestions="preloadedAIQuestions"
+        :usePreloaded="isAIQuestionsPreloaded"
+        @complete="handleAIQuestionComplete"
+        @correct="handleAIQuestionCorrect"
+        @incorrect="handleAIQuestionIncorrect"
         @answer="handleAIQuestionAnswer" />
 
       <!-- 关卡完成 -->
@@ -646,7 +652,12 @@ const startAIQuestionPreload = async () => {
         timestamp: Date.now()
       }))
 
-      console.log('AI题目预加载成功:', data.data)
+      console.log('✅ AI题目预加载成功:', data.data)
+      console.log('✅ 预加载状态更新:', {
+        isAIQuestionsPreloaded: isAIQuestionsPreloaded.value,
+        hasQuestions: !!preloadedAIQuestions.value,
+        questionsCount: data.data?.fill_in_the_blanks?.length || 0
+      })
 
       // 模拟加载时间，让用户看到加载过程
       setTimeout(() => {
@@ -733,9 +744,13 @@ const handleListeningIncorrect = (index) => {
 
 const startAIQuestionPractice = async () => {
   try {
+    console.log('启动AI题目练习 - 检查预加载状态:')
+    console.log('isAIQuestionsPreloaded:', isAIQuestionsPreloaded.value)
+    console.log('preloadedAIQuestions:', preloadedAIQuestions.value)
+
     // 优先使用预加载的题目
     if (isAIQuestionsPreloaded.value && preloadedAIQuestions.value) {
-      console.log('使用预加载的AI题目')
+      console.log('✅ 使用预加载的AI题目')
       showAIQuestionComplete.value = false
       aiQuestionStats.value = { total: 0, correct: 0, accuracy: 0 }
       currentView.value = 'level-customsP'

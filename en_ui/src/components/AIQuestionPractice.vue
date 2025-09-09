@@ -184,8 +184,12 @@ const canSubmit = computed(() => {
 })
 
 // 监听props变化
-watch(() => [props.positionType, props.wordList], () => {
-  if (props.positionType && props.wordList.length > 0) {
+watch(() => [props.positionType, props.wordList, props.usePreloaded, props.preloadedQuestions], () => {
+  // 优先检查预加载题目
+  if (props.usePreloaded && props.preloadedQuestions) {
+    console.log('检测到预加载题目变化，重新生成')
+    generateQuestions()
+  } else if (props.positionType && props.wordList.length > 0) {
     generateQuestions()
   }
 })
@@ -236,17 +240,27 @@ const generateQuestions = async () => {
 const loadPreloadedQuestions = () => {
   try {
     loading.value = true
+    console.log('🔄 开始加载预加载题目:', props.preloadedQuestions)
 
     const data = props.preloadedQuestions
+
+    if (!data) {
+      console.error('❌ 预加载数据为空')
+      questions.value = []
+      return
+    }
 
     // 处理预加载的数据结构
     audioScript.value = data.audio_script || ''
     questions.value = data.fill_in_the_blanks || []
     resetPractice()
 
-    console.log('预加载题目加载成功:', questions.value)
+    console.log('✅ 预加载题目加载成功:')
+    console.log('  - 音频脚本长度:', audioScript.value.length)
+    console.log('  - 题目数量:', questions.value.length)
+    console.log('  - 题目详情:', questions.value)
   } catch (error) {
-    console.error('加载预加载题目时出错:', error)
+    console.error('❌ 加载预加载题目时出错:', error)
     questions.value = []
   } finally {
     loading.value = false
@@ -328,7 +342,11 @@ const getQuestionTypeText = (type) => {
 onMounted(() => {
   // 延迟执行，确保所有函数都已定义
   nextTick(() => {
-    if (props.positionType && props.wordList.length > 0) {
+    // 优先检查预加载题目
+    if (props.usePreloaded && props.preloadedQuestions) {
+      console.log('组件挂载时发现预加载题目')
+      generateQuestions()
+    } else if (props.positionType && props.wordList.length > 0) {
       generateQuestions()
     }
   })

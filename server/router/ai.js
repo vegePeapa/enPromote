@@ -413,9 +413,17 @@ router.post('/startTaskChat', async (req, res) => {
             return res.json({ code: 401, message: '请先登录' });
         }
 
-        const { scene } = req.body; // A 或 B
-        if (!scene || !aiChatPrompts[scene]) {
-            return res.json({ code: 400, message: '无效的场景参数' });
+        // 获取用户当前章节，自动选择对应的场景
+        const User = require('../modules/User');
+        const user = await User.findById(userid);
+        if (!user) {
+            return res.json({ code: 404, message: '用户不存在' });
+        }
+
+        // 根据用户当前章节自动选择场景
+        const scene = user.currentChapter || 'A';
+        if (!aiChatPrompts[scene]) {
+            return res.json({ code: 400, message: `章节 ${scene} 对应的场景配置不存在` });
         }
 
         // 检查是否有未完成的会话

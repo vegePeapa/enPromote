@@ -32,62 +32,30 @@
       <!-- 聊天头部 -->
       <div class="chat-header">
         <div class="ai-info">
-          <div class="ai-avatar">{{ sceneInfo.aiRole === '酒店前台接待员' ? '🏨' : '🍽️' }}</div>
+          <div class="ai-avatar">{{ getSceneIcon }}</div>
           <div class="ai-details">
-            <span class="ai-name">{{ sceneInfo.aiRole || 'AI助手' }}</span>
+            <span class="ai-name">{{ sceneInfo?.aiRole || 'AI助手' }}</span>
             <span class="ai-status">
               <span class="status-dot"></span>
-              {{ sceneInfo.scene || '在线' }}
+              {{ sceneInfo?.scene || getSceneName }}
             </span>
           </div>
         </div>
         <div class="chat-actions">
-          <button class="action-btn" @click="showTaskProgress = !showTaskProgress" title="任务进度">📋</button>
+          <button class="action-btn" @click="showTaskSidebar = !showTaskSidebar" title="任务详情">📋</button>
           <button class="action-btn" @click="showPracticeWords" title="练习单词">📚</button>
           <button class="action-btn" @click="exitChat" title="退出对话">❌</button>
         </div>
       </div>
 
-      <!-- 任务进度条 -->
-      <div v-if="showTaskProgress" class="task-progress-panel">
-        <div class="progress-header">
-          <h3>📋 任务进度</h3>
-          <button class="close-btn" @click="showTaskProgress = false">✕</button>
-        </div>
-        <div class="progress-stats">
-          <div class="stat-item">
-            <span class="stat-label">已完成任务</span>
-            <span class="stat-value">{{ progress.tasksCompleted }}/{{ progress.totalTasks }}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">已使用单词</span>
-            <span class="stat-value">{{ progress.wordsUsed }}个</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">对话轮次</span>
-            <span class="stat-value">{{ progress.turnCount }}轮</span>
-          </div>
-        </div>
-        <div class="tasks-list">
-          <div v-for="task in tasks" :key="task.id" class="task-item"
-            :class="{ completed: task.completed, current: !task.completed && isCurrentTask(task) }">
-            <div class="task-status">
-              <span v-if="task.completed" class="status-icon completed">✅</span>
-              <span v-else-if="isCurrentTask(task)" class="status-icon current">🔄</span>
-              <span v-else class="status-icon pending">⏳</span>
-            </div>
-            <div class="task-content">
-              <h4>{{ task.name }}</h4>
-              <p>{{ task.description }}</p>
-              <div class="task-words">
-                <span class="words-label">需要单词：</span>
-                <span v-for="word in task.requiredWords" :key="word" class="word-tag"
-                  :class="{ used: task.usedWords && task.usedWords.includes(word) }">
-                  {{ word }}
-                </span>
-              </div>
-            </div>
-          </div>
+      <!-- 任务进度简化显示条 -->
+      <div class="progress-bar">
+        <div class="progress-info">
+          <span class="progress-text">
+            任务进度: {{ progress.tasksCompleted }}/{{ progress.totalTasks }} | 
+            单词: {{ progress.wordsUsed }}个 | 
+            轮次: {{ progress.turnCount }}
+          </span>
         </div>
       </div>
 
@@ -143,9 +111,72 @@
           <div v-for="word in practiceWords" :key="word.id" class="word-item">
             <div class="word-main">
               <span class="word-text">{{ word.word }}</span>
-              <span class="word-phonetic">{{ word.phonetic_symbol }}</span>
+              <span class="word-phonetic">{{ word.phonetic }}</span>
             </div>
-            <div class="word-meaning">{{ word.mean }}</div>
+            <div class="word-meaning">{{ word.chineseMeaning }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 任务进度侧边栏 -->
+    <div v-if="showTaskSidebar" class="task-sidebar-overlay" @click="showTaskSidebar = false">
+      <div class="task-sidebar" @click.stop>
+        <div class="sidebar-header">
+          <h3>📋 任务详情</h3>
+          <button class="close-btn" @click="showTaskSidebar = false">✕</button>
+        </div>
+        
+        <!-- 进度统计 -->
+        <div class="progress-stats">
+          <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+              <span class="stat-number">{{ progress.tasksCompleted }}/{{ progress.totalTasks }}</span>
+              <span class="stat-label">已完成任务</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📝</div>
+            <div class="stat-info">
+              <span class="stat-number">{{ progress.wordsUsed }}</span>
+              <span class="stat-label">已使用单词</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💬</div>
+            <div class="stat-info">
+              <span class="stat-number">{{ progress.turnCount }}</span>
+              <span class="stat-label">对话轮次</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 任务列表 -->
+        <div class="tasks-container">
+          <h4 class="tasks-title">任务清单</h4>
+          <div class="tasks-list">
+            <div v-for="task in tasks" :key="task.id" class="task-item"
+              :class="{ completed: task.completed, current: !task.completed && isCurrentTask(task) }">
+              <div class="task-status">
+                <span v-if="task.completed" class="status-icon completed">✅</span>
+                <span v-else-if="isCurrentTask(task)" class="status-icon current">🔄</span>
+                <span v-else class="status-icon pending">⏳</span>
+              </div>
+              <div class="task-content">
+                <h5>{{ task.name }}</h5>
+                <p>{{ task.description }}</p>
+                <div class="task-words">
+                  <span class="words-label">目标单词：</span>
+                  <div class="word-tags">
+                    <span v-for="word in task.requiredWords" :key="word" class="word-tag"
+                      :class="{ used: task.usedWords && task.usedWords.includes(word) }">
+                      {{ word }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -168,7 +199,7 @@ const props = defineProps({
 const emit = defineEmits(['complete', 'exit'])
 
 // 响应式数据
-const showSceneModal = ref(true)
+const showSceneModal = ref(false) // 不再显示场景选择模态框
 const selectedScene = ref('')
 const sessionId = ref('')
 const sceneInfo = ref({})
@@ -190,7 +221,11 @@ const showTaskProgress = ref(false)
 const completionReport = ref(null)
 
 const showWordsSidebar = ref(false)
+const showTaskSidebar = ref(false)
 const practiceWords = ref([])
+
+// 添加缺失的useEnglish变量
+const useEnglish = ref(true) // 默认使用英文
 
 // 场景选项配置
 const sceneOptions = ref([
@@ -218,10 +253,26 @@ const isCurrentTask = computed(() => {
   }
 })
 
+// 根据章节获取场景图标
+const getSceneIcon = computed(() => {
+  const iconMap = {
+    'A': '🏨', // 酒店场景
+    'B': '🍽️'  // 餐厅场景
+  }
+  return iconMap[props.chapter] || '🤖'
+})
+
+// 根据章节获取场景名称
+const getSceneName = computed(() => {
+  const nameMap = {
+    'A': '酒店场景',
+    'B': '餐厅场景'
+  }
+  return nameMap[props.chapter] || '对话练习'
+})
+
 // 开始任务对话
 const startTaskChat = async () => {
-  if (!selectedScene.value) return
-
   try {
     const response = await fetch('/api/aiApi/startTaskChat', {
       method: 'POST',
@@ -229,7 +280,7 @@ const startTaskChat = async () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        scene: selectedScene.value
+        // 不再需要传递scene参数，后端会根据用户章节自动选择
       })
     })
 
@@ -239,17 +290,17 @@ const startTaskChat = async () => {
       sceneInfo.value = data.data.sceneInfo
       tasks.value = data.data.tasks
       progress.value = data.data.progress
-      
+
       // 添加欢迎消息
+      const welcomeMsg = data.data.welcomeMessage || `欢迎来到${getSceneName.value}！让我们开始对话练习吧！`
       messages.value.push({
         id: Date.now(),
         role: 'assistant',
-        content: data.data.welcomeMessage,
+        content: welcomeMsg,
         timestamp: new Date()
       })
 
       showSceneModal.value = false
-      showTaskProgress.value = true // 默认显示任务进度
     } else {
       console.error('创建会话失败:', data.message)
     }
@@ -304,73 +355,105 @@ const sendMessage = async () => {
 
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
+    let buffer = '' // 用于累积不完整的数据
 
     while (true) {
       const { done, value } = await reader.read()
       if (done) break
 
-      const chunk = decoder.decode(value)
-      const lines = chunk.split('\n')
+      // 将新数据添加到缓冲区
+      const chunk = decoder.decode(value, { stream: true })
+      buffer += chunk
 
-      for (const line of lines) {
+      // 调试：显示接收到的原始数据
+      if (chunk.trim()) {
+        console.log('🔄 接收到数据块:', JSON.stringify(chunk))
+      }
+
+      // 按行分割，保留最后一个可能不完整的行
+      const lines = buffer.split('\n')
+      buffer = lines.pop() || '' // 保存最后一个可能不完整的行
+
+      // 调试：显示处理的行数
+      if (lines.length > 0) {
+        console.log('📋 处理行数:', lines.length, '缓冲区剩余:', JSON.stringify(buffer))
+      }
+
+      // 处理完整的行
+      let currentEvent = null
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim()
+
         if (line.startsWith('event: ')) {
-          const event = line.slice(7)
-          const nextLine = lines[lines.indexOf(line) + 1]
-          
-          if (nextLine && nextLine.startsWith('data: ')) {
-            const data = nextLine.slice(6)
-            
-            if (event === 'delta') {
-              try {
-                const parsed = JSON.parse(data)
-                if (parsed.content) {
-                  // 更新AI消息内容
-                  const aiMessage = messages.value.find(msg => msg.id === aiMessageId)
-                  if (aiMessage) {
-                    aiMessage.content += parsed.content
-                    scrollToBottom()
-                  }
+          currentEvent = line.slice(7).trim()
+          console.log('🎯 检测到事件:', currentEvent)
+        } else if (line.startsWith('data: ') && currentEvent) {
+          const data = line.slice(6).trim()
+          console.log('📦 处理数据:', currentEvent, '→', JSON.stringify(data))
+
+          if (currentEvent === 'delta') {
+            try {
+              const parsed = JSON.parse(data)
+              if (parsed.content) {
+                // 更新AI消息内容
+                const aiMessage = messages.value.find(msg => msg.id === aiMessageId)
+                if (aiMessage) {
+                  console.log('📝 接收到内容片段:', JSON.stringify(parsed.content))
+                  aiMessage.content += parsed.content
+                  scrollToBottom()
                 }
-              } catch (e) {
-                // 忽略解析错误
               }
-            } else if (event === 'progress') {
-              try {
-                const parsed = JSON.parse(data)
-                if (parsed.progress) {
-                  progress.value = parsed.progress
-                }
-                if (parsed.currentTask) {
-                  // 更新任务状态
-                  const taskIndex = tasks.value.findIndex(t => t.id === parsed.currentTask.id)
-                  if (taskIndex !== -1) {
-                    tasks.value[taskIndex] = parsed.currentTask
-                  }
-                }
-              } catch (e) {
-                console.error('解析进度数据失败:', e)
-              }
-            } else if (event === 'completion') {
-              try {
-                const parsed = JSON.parse(data)
-                if (parsed.completed) {
-                  completionReport.value = parsed.report
-                  showCompletionModal()
-                }
-              } catch (e) {
-                console.error('解析完成数据失败:', e)
-              }
-            } else if (event === 'end' && data === '[DONE]') {
-              // 流结束
-              const aiMessage = messages.value.find(msg => msg.id === aiMessageId)
-              if (aiMessage) {
-                aiMessage.streaming = false
-              }
-              break
+            } catch (e) {
+              console.error('解析delta数据失败:', e, 'data:', data)
             }
+          } else if (currentEvent === 'progress') {
+            try {
+              const parsed = JSON.parse(data)
+              if (parsed.progress) {
+                progress.value = parsed.progress
+              }
+              if (parsed.currentTask) {
+                // 更新任务状态
+                const taskIndex = tasks.value.findIndex(t => t.id === parsed.currentTask.id)
+                if (taskIndex !== -1) {
+                  tasks.value[taskIndex] = parsed.currentTask
+                }
+              }
+            } catch (e) {
+              console.error('解析进度数据失败:', e)
+            }
+          } else if (currentEvent === 'completion') {
+            try {
+              const parsed = JSON.parse(data)
+              if (parsed.completed) {
+                completionReport.value = parsed.report
+                showCompletionModal()
+              }
+            } catch (e) {
+              console.error('解析完成数据失败:', e)
+            }
+          } else if (currentEvent === 'end' && data === '[DONE]') {
+            // 流结束
+            const aiMessage = messages.value.find(msg => msg.id === aiMessageId)
+            if (aiMessage) {
+              aiMessage.streaming = false
+            }
+            break
           }
+
+          // 重置事件，准备处理下一个事件
+          currentEvent = null
+        } else if (line === '') {
+          // 空行，重置事件状态
+          currentEvent = null
         }
       }
+    }
+
+    // 处理缓冲区中剩余的数据
+    if (buffer.trim()) {
+      console.log('处理剩余缓冲区数据:', buffer)
     }
   } catch (error) {
     console.error('发送消息失败:', error)
@@ -407,10 +490,10 @@ const formatTime = (timestamp) => {
 // 显示练习单词
 const showPracticeWords = async () => {
   try {
-    const response = await fetch('/api/aiApi/getPracticeWords')
+    const response = await fetch('/api/aiApi/practice_words')
     const data = await response.json()
     if (data.code === 200) {
-      practiceWords.value = data.data
+      practiceWords.value = data.data.words || []
       showWordsSidebar.value = true
     }
   } catch (error) {
@@ -429,7 +512,9 @@ const exitChat = () => {
 
 // 生命周期
 onMounted(() => {
-  // 组件挂载后的初始化
+  // 根据章节自动选择场景并开始对话
+  selectedScene.value = props.chapter
+  startTaskChat()
 })
 </script>
 
@@ -701,8 +786,9 @@ onMounted(() => {
 .messages-container {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem;
-  background: #f8f9fa;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  min-height: 0; /* 确保flex子项可以收缩 */
 }
 
 .welcome-message {
@@ -722,13 +808,25 @@ onMounted(() => {
 }
 
 .message-wrapper {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .message {
   display: flex;
   gap: 1rem;
-  max-width: 80%;
+  max-width: 85%;
 }
 
 .user-message {
@@ -739,11 +837,13 @@ onMounted(() => {
 .user-message .message-content {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .ai-message .message-content {
   background: white;
   border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .message-avatar {
@@ -812,13 +912,14 @@ onMounted(() => {
 }
 
 .chat-input {
-  padding: 1rem 1.5rem;
-  background: white;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
   border-top: 1px solid #e0e0e0;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .input-container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
@@ -826,20 +927,29 @@ onMounted(() => {
   display: flex;
   gap: 1rem;
   align-items: center;
+  background: white;
+  border-radius: 30px;
+  padding: 0.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+.input-wrapper:focus-within {
+  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.2);
 }
 
 .message-input {
   flex: 1;
-  padding: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 25px;
+  padding: 1rem 1.5rem;
+  border: none;
+  background: transparent;
   font-size: 1rem;
   outline: none;
-  transition: border-color 0.3s ease;
+  color: #333;
 }
 
-.message-input:focus {
-  border-color: #667eea;
+.message-input::placeholder {
+  color: #999;
 }
 
 .send-btn {
@@ -854,15 +964,32 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .send-btn:hover:not(:disabled) {
-  transform: scale(1.1);
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 .send-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+}
+
+.send-icon {
+  font-size: 1.2rem;
+}
+
+.loading-spinner {
+  font-size: 1rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* 练习单词侧边栏 */
@@ -986,81 +1113,142 @@ onMounted(() => {
   margin-bottom: 0.3rem;
 }
 
-/* 任务进度面板样式 */
-.task-progress-panel {
-  background: white;
-  border-bottom: 1px solid #e0e0e0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.progress-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
+/* 简化进度条样式 */
+.progress-bar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  padding: 0.8rem 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
 }
 
-.progress-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
+.progress-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-text {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* 任务侧边栏样式 */
+.task-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.task-sidebar {
+  width: 400px;
+  background: white;
+  height: 100vh;
+  overflow-y: auto;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .progress-stats {
-  display: flex;
-  justify-content: space-around;
-  padding: 1rem;
+  padding: 1.5rem;
   background: #f8f9fa;
   border-bottom: 1px solid #e0e0e0;
 }
 
-.stat-item {
-  text-align: center;
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
+.stat-card:last-child {
+  margin-bottom: 0;
+}
+
+.stat-icon {
+  font-size: 1.8rem;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  color: white;
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-number {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #333;
+  line-height: 1;
 }
 
 .stat-label {
-  display: block;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   color: #666;
-  margin-bottom: 0.3rem;
+  margin-top: 0.2rem;
 }
 
-.stat-value {
-  display: block;
-  font-size: 1.2rem;
-  font-weight: bold;
+.tasks-container {
+  padding: 1.5rem;
+}
+
+.tasks-title {
+  margin: 0 0 1rem 0;
   color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .tasks-list {
-  max-height: 300px;
-  overflow-y: auto;
-  padding: 1rem;
+  max-height: none;
 }
 
 .task-item {
   display: flex;
   gap: 1rem;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 0.5rem;
+  padding: 1.2rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
   transition: all 0.3s ease;
+  border: 1px solid #e0e0e0;
 }
 
 .task-item.completed {
-  background: #e8f5e8;
-  border-left: 4px solid #4CAF50;
+  background: linear-gradient(135deg, #e8f5e8 0%, #f0f9f0 100%);
+  border-color: #4CAF50;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.15);
 }
 
 .task-item.current {
-  background: #fff3cd;
-  border-left: 4px solid #ffc107;
+  background: linear-gradient(135deg, #fff3cd 0%, #fef9e7 100%);
+  border-color: #ffc107;
+  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.15);
 }
 
 .task-item:not(.completed):not(.current) {
   background: #f8f9fa;
-  border-left: 4px solid #dee2e6;
+  border-color: #dee2e6;
 }
 
 .task-status {
@@ -1068,17 +1256,18 @@ onMounted(() => {
 }
 
 .status-icon {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
 }
 
-.task-content h4 {
+.task-content h5 {
   margin: 0 0 0.5rem 0;
   font-size: 1rem;
   color: #333;
+  font-weight: 600;
 }
 
 .task-content p {
-  margin: 0 0 0.8rem 0;
+  margin: 0 0 1rem 0;
   font-size: 0.9rem;
   color: #666;
   line-height: 1.4;
@@ -1086,30 +1275,38 @@ onMounted(() => {
 
 .task-words {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 0.5rem;
-  align-items: center;
 }
 
 .words-label {
   font-size: 0.8rem;
   color: #666;
-  margin-right: 0.5rem;
+  font-weight: 500;
+}
+
+.word-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
 }
 
 .word-tag {
   background: #e9ecef;
   color: #495057;
-  padding: 0.2rem 0.5rem;
-  border-radius: 12px;
+  padding: 0.3rem 0.6rem;
+  border-radius: 16px;
   font-size: 0.8rem;
   transition: all 0.3s ease;
+  border: 1px solid transparent;
 }
 
 .word-tag.used {
-  background: #d4edda;
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
   color: #155724;
-  font-weight: bold;
+  font-weight: 600;
+  border-color: #4CAF50;
+  box-shadow: 0 1px 3px rgba(76, 175, 80, 0.2);
 }
 
 .words-list {
@@ -1159,12 +1356,134 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 
-  .words-sidebar {
+  .words-sidebar, .task-sidebar {
     width: 100%;
   }
 
   .message {
     max-width: 95%;
+  }
+
+  .chat-header {
+    padding: 1rem;
+  }
+
+  .ai-info {
+    gap: 0.8rem;
+  }
+
+  .ai-avatar {
+    font-size: 1.5rem;
+  }
+
+  .chat-actions {
+    gap: 0.3rem;
+  }
+
+  .action-btn {
+    font-size: 1rem;
+    padding: 0.4rem;
+  }
+
+  .progress-bar {
+    padding: 0.6rem 1rem;
+  }
+
+  .progress-text {
+    font-size: 0.8rem;
+  }
+
+  .messages-container {
+    padding: 1rem;
+  }
+
+  .message-avatar {
+    width: 35px;
+    height: 35px;
+    font-size: 1.2rem;
+  }
+
+  .message-content {
+    padding: 0.8rem;
+  }
+
+  .chat-input {
+    padding: 1rem;
+  }
+
+  .input-wrapper {
+    padding: 0.3rem;
+  }
+
+  .message-input {
+    padding: 0.8rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .send-btn {
+    width: 45px;
+    height: 45px;
+  }
+
+  .stat-card {
+    padding: 0.8rem;
+    gap: 0.8rem;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+  }
+
+  .stat-number {
+    font-size: 1.2rem;
+  }
+
+  .tasks-container {
+    padding: 1rem;
+  }
+
+  .task-item {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .progress-text {
+    font-size: 0.7rem;
+  }
+
+  .message {
+    max-width: 98%;
+  }
+
+  .message-content {
+    padding: 0.6rem;
+  }
+
+  .input-wrapper {
+    gap: 0.5rem;
+  }
+
+  .send-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .stat-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem 0.5rem;
+  }
+
+  .task-item {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .task-status {
+    align-self: flex-start;
   }
 }
 </style>
