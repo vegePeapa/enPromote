@@ -273,6 +273,42 @@ const getSceneName = computed(() => {
   return nameMap[props.chapter] || '对话练习'
 })
 
+// 加载历史对话
+const loadChatHistory = async (sessionId) => {
+  try {
+    const response = await fetch(`/api/aiApi/getChatHistory?sessionId=${sessionId}`)
+    const data = await response.json()
+    
+    if (data.code === 200) {
+      const { messages: historyMessages, sessionInfo } = data.data
+      
+      // 恢复会话信息
+      sceneInfo.value = {
+        scene: sessionInfo.scene,
+        aiRole: sessionInfo.chapter === 'A' ? '酒店前台接待员' : '餐厅服务员'
+      }
+      tasks.value = sessionInfo.tasks || []
+      progress.value = sessionInfo.progress || { tasksCompleted: 0, totalTasks: 0, wordsUsed: 0, turnCount: 0 }
+      
+      // 恢复历史消息
+      messages.value = historyMessages.map((msg, index) => ({
+        id: Date.now() + index,
+        role: msg.role,
+        content: msg.content,
+        timestamp: new Date(msg.timestamp)
+      }))
+      
+      console.log(`加载了 ${historyMessages.length} 条历史消息`)
+      scrollToBottom()
+      return true
+    }
+    return false
+  } catch (error) {
+    console.error('加载历史对话失败:', error)
+    return false
+  }
+}
+
 // 开始任务对话
 const startTaskChat = async () => {
   try {
@@ -293,14 +329,23 @@ const startTaskChat = async () => {
       tasks.value = data.data.tasks
       progress.value = data.data.progress
 
-      // 添加欢迎消息
-      const welcomeMsg = data.data.welcomeMessage || `欢迎来到${getSceneName.value}！让我们开始对话练习吧！`
-      messages.value.push({
-        id: Date.now(),
-        role: 'assistant',
-        content: welcomeMsg,
-        timestamp: new Date()
-      })
+      // 检查是否有历史对话
+      const hasHistory = await loadChatHistory(sessionId.value)
+      
+      if (!hasHistory) {
+        // 没有历史对话，添加欢迎消息
+        const welcomeMsg = data.data.welcomeMessage || `欢迎来到${getSceneName.value}！让我们开始对话练习吧！`
+        const welcomeMsgObj = {
+          id: Date.now(),
+          role: 'assistant',
+          content: welcomeMsg,
+          timestamp: new Date()
+        }
+        messages.value.push(welcomeMsgObj)
+        
+        // 保存欢迎消息到数据库
+        await saveChatMessage('assistant', welcomeMsg)
+      }
 
       showSceneModal.value = false
     } else {
@@ -311,6 +356,25 @@ const startTaskChat = async () => {
   }
 }
 
+// 保存消息到数据库
+const saveChatMessage = async (role, content) => {
+  try {
+    await fetch('/api/aiApi/saveChatMessage', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        sessionId: sessionId.value,
+        role,
+        content
+      })
+    })
+  } catch (error) {
+    console.error('保存消息失败:', error)
+  }
+}
+
 // 发送任务导向消息
 const sendMessage = async () => {
   if (!inputMessage.value.trim() || loading.value || !sessionId.value) return
@@ -318,12 +382,16 @@ const sendMessage = async () => {
   const userMessage = inputMessage.value.trim()
 
   // 添加用户消息
-  messages.value.push({
+  const userMsg = {
     id: Date.now(),
     role: 'user',
     content: userMessage,
     timestamp: new Date()
-  })
+  }
+  messages.value.push(userMsg)
+
+  // 保存用户消息到数据库
+  await saveChatMessage('user', userMessage)
 
   // 添加AI消息占位符
   const aiMessageId = Date.now() + 1
@@ -440,6 +508,8 @@ const sendMessage = async () => {
             const aiMessage = messages.value.find(msg => msg.id === aiMessageId)
             if (aiMessage) {
               aiMessage.streaming = false
+              // 保存AI消息到数据库
+              await saveChatMessage('assistant', aiMessage.content)
             }
             break
           }

@@ -27,14 +27,6 @@ app.use(session({
     secret: 'secret',
     resave: false,
     saveUninitialized: true,
-    userid: '',
-    // 用户进度管理
-    cet4: {
-        position: 'A:0',
-        lastStudyTime: new Date()
-    },
-    // 状态管理
-    isLogin: false,
     store: MongoStore.create({
         mongoUrl: 'mongodb://localhost:27017/session'
     }),
@@ -60,6 +52,8 @@ function globalMiddleware_isLogin(req, res, next) {
         ))) {
         return next();
     } else {
+        // console.log(req.session)
+        console.log(req.session.userid);
         if (req.session.isLogin && req.session.userid) {
             next();
         } else {

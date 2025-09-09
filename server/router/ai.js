@@ -433,14 +433,22 @@ router.post('/startTaskChat', async (req, res) => {
         });
 
         if (existingSession) {
+            const sceneConfig = aiChatPrompts[existingSession.scene];
             return res.json({
                 code: 200,
                 message: '继续现有会话',
                 data: {
                     sessionId: existingSession.sessionId,
                     scene: existingSession.scene,
+                    sceneInfo: {
+                        scene: sceneConfig.scene,
+                        aiRole: sceneConfig.aiRole,
+                        userRole: sceneConfig.userRole,
+                        taskDescription: sceneConfig.taskDescription
+                    },
                     progress: existingSession.progress,
-                    tasks: existingSession.tasks
+                    tasks: existingSession.tasks,
+                    welcomeMessage: null // 不需要欢迎消息，因为会加载历史记录
                 }
             });
         }
@@ -452,6 +460,7 @@ router.post('/startTaskChat', async (req, res) => {
         const newSession = new AiChatSession({
             userid: userid,
             scene: scene,
+            chapter: scene, // 章节与场景相同
             sessionId: sessionId,
             tasks: sceneConfig.tasks.map(task => ({
                 ...task,
@@ -700,5 +709,133 @@ function buildTaskSystemPrompt(sceneConfig, session, currentTask) {
     
     return prompt;
 }
+
+// 保存对话消息到数据库
+router.post('/saveChatMessage', async (req, res) => {
+    try {
+        const { sessionId, role, content } = req.body;
+        const userId = req.session.userid;
+        
+        if (!userId) {
+            return res.json({ code: 401, message: '用户未登录' });
+        }
+
+        if (!sessionId || !role || !content) {
+            return res.json({ code: 400, message: '参数不完整' });
+        }
+
+        // 查找会话
+        const session = await AiChatSession.findOne({ sessionId, userid: userId });
+        if (!session) {
+            return res.json({ code: 404, message: '会话不存在' });
+        }
+
+        // 添加消息到会话
+        session.messages.push({
+            role,
+            content,
+            timestamp: new Date()
+        });
+
+        // 更新最后消息和消息计数
+        session.lastMessage = content.substring(0, 100);
+        session.messageCount = session.messages.length;
+        session.updatedAt = new Date();
+
+        await session.save();
+
+        res.json({ code: 200, message: '消息保存成功' });
+    } catch (error) {
+        logger.error('保存对话消息失败:', error);
+        res.json({ code: 500, message: '保存消息失败' });
+    }
+});
+
+// 获取对话历史
+router.get('/getChatHistory', async (req, res) => {
+    try {  
+        const { sessionId } = req.query;
+        const userId = req.session.userid;
+        
+        if (!userId) {
+            return res.json({ code: 401, message: '用户未登录' });
+        }
+
+        if (sessionId) {
+            // 获取特定会话的消息
+            const session = await AiChatSession.findOne({ sessionId, userid: userId });
+            if (!session) {
+                return res.json({ code: 404, message: '会话不存在' });
+            }
+
+            res.json({
+                code: 200,
+                data: {
+                    messages: session.messages,
+                    sessionInfo: {
+                        sessionId: session.sessionId,
+                        scene: session.scene,
+                        chapter: session.chapter,
+                        progress: session.progress,
+                        tasks: session.tasks
+                    }
+                }
+            });
+        } else {
+            // 获取用户的所有对话会话列表
+            const sessions = await AiChatSession.find({ userid: userId })
+                .sort({ updatedAt: -1 })
+                .limit(20)
+                .select('sessionId scene chapter lastMessage messageCount completed createdAt updatedAt progress');
+
+            res.json({
+                code: 200,
+                data: {
+                    sessions: sessions.map(session => ({
+                        id: session.sessionId,
+                        scene: session.scene,
+                        chapter: session.chapter,
+                        lastMessage: session.lastMessage,
+                        messageCount: session.messageCount,
+                        completed: session.completed,
+                        createdAt: session.createdAt,
+                        updatedAt: session.updatedAt,
+                        wordsUsed: session.progress?.wordsUsed || 0
+                    }))
+                }
+            });
+        }
+    } catch (error) {
+        logger.error('获取对话历史失败:', error);
+        res.json({ code: 500, message: '获取历史失败' });
+    }
+});
+
+// 删除对话会话
+router.delete('/deleteChatSession', async (req, res) => {
+    try {
+        const { sessionId } = req.body;
+        const userId = req.session.userid;
+
+        if (!userId) {
+            return res.json({ code: 401, message: '用户未登录' });
+        }
+
+        if (!sessionId) {
+            return res.json({ code: 400, message: '会话ID不能为空' });
+        }
+
+        const result = await AiChatSession.deleteOne({ sessionId, userid: userId });
+        
+        if (result.deletedCount === 0) {
+            return res.json({ code: 404, message: '会话不存在或无权限删除' });
+        }
+
+        res.json({ code: 200, message: '会话删除成功' });
+    } catch (error) {
+        logger.error('删除对话会话失败:', error);
+        res.json({ code: 500, message: '删除会话失败' });
+    }
+});
 
 module.exports = router;

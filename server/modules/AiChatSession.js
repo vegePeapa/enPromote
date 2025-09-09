@@ -11,6 +11,24 @@ const aiChatSessionSchema = new mongoose.Schema({
         required: true,
         enum: ['A', 'B'], // A: 酒店入住, B: 餐厅用餐
     },
+    chapter: {
+        type: String,
+        required: true,
+        enum: ['A', 'B'], // 对应用户当前章节
+        default: 'A'
+    },
+    lastMessage: {
+        type: String,
+        default: ''
+    },
+    messageCount: {
+        type: Number,
+        default: 0
+    },
+    completed: {
+        type: Boolean,
+        default: false
+    },
     sessionId: {
         type: String,
         required: true,
