@@ -288,10 +288,89 @@
     font-size: 14px;
 }
 
-/* AI功能特色区域 */
+/* 核心功能特色区域 */
 .ai-features {
     padding: 5rem 5%;
     background: #f8f9ff;
+}
+
+/* 功能亮点标签 */
+.feature-highlights {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+.highlight-tag {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* 学习流程展示 */
+.learning-flow {
+    margin-top: 4rem;
+    padding: 3rem;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.learning-flow h3 {
+    text-align: center;
+    font-size: 1.8rem;
+    color: #2d3748;
+    margin-bottom: 2rem;
+}
+
+.flow-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.flow-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 120px;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.step-content h4 {
+    font-size: 1rem;
+    color: #2d3748;
+    margin-bottom: 4px;
+}
+
+.step-content p {
+    font-size: 0.85rem;
+    color: #718096;
+}
+
+.flow-arrow {
+    font-size: 1.5rem;
+    color: #cbd5e0;
+    margin: 0 8px;
 }
 
 .section-header {
@@ -504,6 +583,37 @@
     flex-wrap: wrap;
     gap: 8px;
     justify-content: center;
+    margin-bottom: 1rem;
+}
+
+/* AI老师示例对话 */
+.teacher-example {
+    background: #f8f9ff;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 12px;
+    border-left: 3px solid #667eea;
+}
+
+.teacher-example em {
+    color: #4a5568;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+/* AI老师CTA区域 */
+.teachers-cta {
+    text-align: center;
+    margin-top: 3rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 16px;
+    color: white;
+}
+
+.teachers-cta p {
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
 }
 
 .feature-tag {
@@ -559,6 +669,118 @@
 
     .teacher-avatar {
         font-size: 3rem;
+    }
+}
+
+/* 学习路径推荐样式 */
+.daily-suggestion {
+    padding: 5rem 5%;
+    background: #f8fafc;
+}
+
+.suggestion-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 3rem;
+}
+
+.suggestion-cards .card {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.suggestion-cards .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.suggestion-cards .card.featured {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    transform: scale(1.05);
+}
+
+.suggestion-cards .card.featured:hover {
+    transform: scale(1.08) translateY(-5px);
+}
+
+.card-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+}
+
+.card-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0;
+}
+
+.card-features span {
+    background: rgba(102, 126, 234, 0.1);
+    color: #667eea;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.suggestion-cards .card.featured .card-features span {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+/* 统计数据样式增强 */
+.stats {
+    padding: 5rem 5%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.stats .section-title {
+    color: white;
+}
+
+.stat-desc {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-top: 4px;
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+    .flow-steps {
+        flex-direction: column;
+    }
+
+    .flow-arrow {
+        transform: rotate(90deg);
+        margin: 8px 0;
+    }
+
+    .suggestion-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .suggestion-cards .card.featured {
+        transform: none;
+    }
+
+    .suggestion-cards .card.featured:hover {
+        transform: translateY(-5px);
     }
 }
 

@@ -8,39 +8,39 @@
       <section class="hero">
         <div class="hero-content">
           <div class="hero-badge">
-            <span class="badge-icon">🤖</span>
-            <span class="badge-text">AI驱动学习</span>
+            <span class="badge-icon">🚀</span>
+            <span class="badge-text">全新升级</span>
           </div>
-          <h1 class="hero-title">与AI老师一对一<br><span class="highlight">英语对话练习</span></h1>
+          <h1 class="hero-title">智能英语学习平台<br><span class="highlight">AI陪你闯关练口语</span></h1>
           <p class="hero-description">
-            革命性的AI英语学习体验 - 24/7个人英语导师，实时纠错，个性化教学风格
+            结构化闯关学习 + 个性化AI对话 - 从词汇到口语，从基础到实战，让英语学习更有趣更高效
           </p>
           <div class="hero-actions">
-            <button class="btn-primary-large" @click="goToAdventure">
+            <button class="btn-primary-large" @click="goToChapters">
               <span class="btn-icon">🗺️</span>
-              开始闯关
+              开始闯关学习
             </button>
-            <button class="btn-secondary-outline" @click="goToAiChat">
+            <button class="btn-secondary-outline" @click="goToFreeChat">
               <span class="btn-icon">💬</span>
-              AI对话
+              自由AI对话
             </button>
             <button class="btn-secondary-outline" @click="showAiPreview = true">
               <span class="btn-icon">👁️</span>
-              预览体验
+              功能预览
             </button>
           </div>
           <div class="hero-stats">
             <div class="stat-mini">
-              <span class="stat-number">10,000+</span>
-              <span class="stat-label">对话练习</span>
+              <span class="stat-number">2大</span>
+              <span class="stat-label">学习场景</span>
             </div>
             <div class="stat-mini">
               <span class="stat-number">5种</span>
               <span class="stat-label">AI性格</span>
             </div>
             <div class="stat-mini">
-              <span class="stat-number">24/7</span>
-              <span class="stat-label">随时可用</span>
+              <span class="stat-number">5关</span>
+              <span class="stat-label">闯关模式</span>
             </div>
           </div>
         </div>
@@ -82,45 +82,86 @@
         </div>
       </section>
 
-      <!-- AI功能特色 -->
+      <!-- 核心功能特色 -->
       <section class="ai-features">
         <div class="section-header">
-          <h2 class="section-title">为什么选择AI英语老师？</h2>
-          <p class="section-subtitle">体验前所未有的个性化英语学习</p>
+          <h2 class="section-title">两大核心学习模式</h2>
+          <p class="section-subtitle">结构化学习 + 自由对话，全方位提升英语能力</p>
         </div>
         <div class="feature-grid">
           <div class="feature-card primary">
             <div class="feature-icon-wrapper">
-              <div class="feature-icon">🤖</div>
-              <div class="feature-badge">核心功能</div>
+              <div class="feature-icon">🗺️</div>
+              <div class="feature-badge">主推功能</div>
             </div>
-            <h3>AI对话练习</h3>
-            <p>与智能AI老师进行真实对话，获得即时反馈和纠错，提升口语表达能力</p>
-            <button class="feature-btn" @click="goToAiChat">立即体验</button>
+            <h3>闯关学习模式</h3>
+            <p>酒店、餐厅两大场景，5关递进式学习：词汇→拼写→听力→AI题目→实战对话</p>
+            <div class="feature-highlights">
+              <span class="highlight-tag">✨ 结构化学习路径</span>
+              <span class="highlight-tag">🎯 场景化实用英语</span>
+              <span class="highlight-tag">📊 进度可视化追踪</span>
+            </div>
+            <button class="feature-btn" @click="goToChapters">开始闯关</button>
           </div>
-          <div class="feature-card">
+          <div class="feature-card primary">
             <div class="feature-icon-wrapper">
-              <div class="feature-icon">🎭</div>
+              <div class="feature-icon">💬</div>
+              <div class="feature-badge">特色功能</div>
             </div>
-            <h3>5种AI性格</h3>
-            <p>选择适合你的AI老师性格：温和、严格、幽默、专业、鼓励式，个性化学习体验</p>
-            <button class="feature-btn secondary" @click="goToAiChat">了解更多</button>
+            <h3>自由AI对话</h3>
+            <p>5种AI性格任你选择，随时随地练习口语，获得个性化反馈和指导</p>
+            <div class="feature-highlights">
+              <span class="highlight-tag">🎭 5种AI性格</span>
+              <span class="highlight-tag">⚡ 实时对话反馈</span>
+              <span class="highlight-tag">🔄 24/7随时可用</span>
+            </div>
+            <button class="feature-btn" @click="goToFreeChat">开始对话</button>
           </div>
-          <div class="feature-card">
-            <div class="feature-icon-wrapper">
-              <div class="feature-icon">📚</div>
+        </div>
+
+        <!-- 学习流程展示 -->
+        <div class="learning-flow">
+          <h3>完整学习流程</h3>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <h4>📚 词汇学习</h4>
+                <p>掌握场景核心词汇</p>
+              </div>
             </div>
-            <h3>智能词汇推荐</h3>
-            <p>AI分析你的学习进度，智能推荐需要重点练习的单词，高效提升词汇量</p>
-            <button class="feature-btn secondary" @click="goToVocabulary">开始学习</button>
-          </div>
-          <div class="feature-card">
-            <div class="feature-icon-wrapper">
-              <div class="feature-icon">🎧</div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <h4>✏️ 拼写练习</h4>
+                <p>强化单词记忆</p>
+              </div>
             </div>
-            <h3>个性化听力训练</h3>
-            <p>根据你的水平和兴趣，AI推荐合适的听力材料，循序渐进提升听力技能</p>
-            <button class="feature-btn secondary" @click="goToListening">开始训练</button>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <h4>🎧 听力训练</h4>
+                <p>提升听力理解</p>
+              </div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+              <div class="step-number">4</div>
+              <div class="step-content">
+                <h4>🤖 AI题目</h4>
+                <p>智能生成练习题</p>
+              </div>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">
+              <div class="step-number">5</div>
+              <div class="step-content">
+                <h4>💬 实战对话</h4>
+                <p>AI场景对话练习</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -128,99 +169,138 @@
       <!-- AI老师介绍 -->
       <section class="ai-teachers">
         <div class="section-header">
-          <h2 class="section-title">选择你的AI英语老师</h2>
-          <p class="section-subtitle">每种性格都有独特的教学风格</p>
+          <h2 class="section-title">5种AI性格，总有一款适合你</h2>
+          <p class="section-subtitle">在自由对话模式中，选择最适合你的AI老师性格</p>
         </div>
         <div class="teachers-grid">
           <div class="teacher-card" @click="selectTeacher('gentle')">
             <div class="teacher-avatar">😊</div>
-            <h3>温和老师</h3>
-            <p>耐心细致，循循善诱</p>
+            <h3>温和导师</h3>
+            <p>耐心细致，循循善诱，营造轻松学习氛围</p>
             <div class="teacher-features">
-              <span class="feature-tag">适合初学者</span>
-              <span class="feature-tag">鼓励式教学</span>
+              <span class="feature-tag">🌟 适合初学者</span>
+              <span class="feature-tag">💝 鼓励式教学</span>
+            </div>
+            <div class="teacher-example">
+              <em>"很好！你的发音有了明显进步，我们继续练习..."</em>
             </div>
           </div>
           <div class="teacher-card" @click="selectTeacher('strict')">
             <div class="teacher-avatar">🔥</div>
-            <h3>严格老师</h3>
-            <p>直接犀利，快速纠错</p>
+            <h3>严格教练</h3>
+            <p>直接犀利，快速纠错，追求学习效率</p>
             <div class="teacher-features">
-              <span class="feature-tag">适合进阶者</span>
-              <span class="feature-tag">高效学习</span>
+              <span class="feature-tag">⚡ 适合进阶者</span>
+              <span class="feature-tag">🎯 高效学习</span>
+            </div>
+            <div class="teacher-example">
+              <em>"这个语法错误需要立即纠正，正确的说法是..."</em>
             </div>
           </div>
           <div class="teacher-card" @click="selectTeacher('humorous')">
             <div class="teacher-avatar">🎭</div>
-            <h3>幽默老师</h3>
-            <p>生动有趣，寓教于乐</p>
+            <h3>幽默伙伴</h3>
+            <p>生动有趣，寓教于乐，让学习充满乐趣</p>
             <div class="teacher-features">
-              <span class="feature-tag">轻松氛围</span>
-              <span class="feature-tag">记忆深刻</span>
+              <span class="feature-tag">😄 轻松氛围</span>
+              <span class="feature-tag">🧠 记忆深刻</span>
+            </div>
+            <div class="teacher-example">
+              <em>"哈哈，这个单词就像它的意思一样有趣！让我们..."</em>
             </div>
           </div>
-          <div class="teacher-card" @click="selectTeacher('professional')">
+          <div class="teacher-card" @click="selectTeacher('cold')">
             <div class="teacher-avatar">❄️</div>
-            <h3>专业老师</h3>
-            <p>严谨专业，追求完美</p>
+            <h3>超级人机</h3>
+            <p>理性分析，逻辑清晰，专注技能提升</p>
             <div class="teacher-features">
-              <span class="feature-tag">商务英语</span>
-              <span class="feature-tag">学术写作</span>
+              <span class="feature-tag">🤖 理性分析</span>
+              <span class="feature-tag">📊 数据驱动</span>
+            </div>
+            <div class="teacher-example">
+              <em>"根据语言学习规律，建议你重点练习..."</em>
             </div>
           </div>
           <div class="teacher-card" @click="selectTeacher('encouraging')">
-            <div class="teacher-avatar">😤</div>
-            <h3>激励老师</h3>
-            <p>积极鼓励，建立自信</p>
+            <div class="teacher-avatar">💪</div>
+            <h3>激励教练</h3>
+            <p>积极鼓励，建立自信，激发学习潜能</p>
             <div class="teacher-features">
-              <span class="feature-tag">提升自信</span>
-              <span class="feature-tag">正面反馈</span>
+              <span class="feature-tag">🚀 提升自信</span>
+              <span class="feature-tag">⭐ 正面反馈</span>
+            </div>
+            <div class="teacher-example">
+              <em>"太棒了！你的进步让我刮目相看，继续加油！"</em>
             </div>
           </div>
         </div>
+        <div class="teachers-cta">
+          <p>想要体验不同AI性格的教学风格？</p>
+          <button class="btn-primary" @click="goToFreeChat">立即开始自由对话</button>
+        </div>
       </section>
 
-      <!-- 学习进度统计 -->
+      <!-- 平台数据展示 -->
       <section class="stats">
-        <h2 class="section-title">学习效果</h2>
+        <h2 class="section-title">平台学习数据</h2>
         <div class="stats-container">
           <div class="stat-item">
-            <div class="stat-number">5000+</div>
-            <div class="stat-label">词汇量</div>
+            <div class="stat-number">2大</div>
+            <div class="stat-label">学习场景</div>
+            <div class="stat-desc">酒店 & 餐厅</div>
           </div>
           <div class="stat-item">
-            <div class="stat-number">200+</div>
-            <div class="stat-label">练习题</div>
+            <div class="stat-number">5关</div>
+            <div class="stat-label">闯关模式</div>
+            <div class="stat-desc">递进式学习</div>
           </div>
           <div class="stat-item">
-            <div class="stat-number">50+</div>
-            <div class="stat-label">阅读文章</div>
+            <div class="stat-number">5种</div>
+            <div class="stat-label">AI性格</div>
+            <div class="stat-desc">个性化对话</div>
           </div>
           <div class="stat-item">
-            <div class="stat-number">30+</div>
-            <div class="stat-label">听力材料</div>
+            <div class="stat-number">24/7</div>
+            <div class="stat-label">在线服务</div>
+            <div class="stat-desc">随时随地学习</div>
           </div>
         </div>
       </section>
 
-      <!-- 今日学习建议 -->
+      <!-- 学习路径推荐 -->
       <section class="daily-suggestion">
-        <h2 class="section-title">今日学习建议</h2>
+        <h2 class="section-title">推荐学习路径</h2>
         <div class="suggestion-cards">
-          <div class="card">
-            <h3>词汇练习</h3>
-            <p>掌握20个商务英语常用词汇</p>
-            <button class="btn-secondary" @click="goToVocabulary">开始学习</button>
+          <div class="card featured">
+            <div class="card-badge">🌟 推荐</div>
+            <h3>结构化闯关学习</h3>
+            <p>从酒店场景开始，5关递进式学习，系统掌握实用英语</p>
+            <div class="card-features">
+              <span>✅ 词汇积累</span>
+              <span>✅ 听力提升</span>
+              <span>✅ 口语实战</span>
+            </div>
+            <button class="btn-primary" @click="goToChapters">开始闯关</button>
           </div>
           <div class="card">
-            <h3>语法训练</h3>
-            <p>完善过去完成时的用法</p>
-            <button class="btn-secondary">开始练习</button>
+            <h3>自由AI对话</h3>
+            <p>选择你喜欢的AI性格，随时开始英语对话练习</p>
+            <div class="card-features">
+              <span>🎭 5种性格</span>
+              <span>💬 实时对话</span>
+              <span>🔄 随时可用</span>
+            </div>
+            <button class="btn-secondary" @click="goToFreeChat">开始对话</button>
           </div>
           <div class="card">
-            <h3>阅读理解</h3>
-            <p>阅读一篇科技新闻文章</p>
-            <button class="btn-secondary">开始阅读</button>
+            <h3>混合学习模式</h3>
+            <p>结合闯关学习和自由对话，获得最佳学习效果</p>
+            <div class="card-features">
+              <span>📚 系统学习</span>
+              <span>💡 灵活练习</span>
+              <span>🚀 快速提升</span>
+            </div>
+            <button class="btn-secondary" @click="showMixedLearning">了解更多</button>
           </div>
         </div>
       </section>
@@ -296,32 +376,28 @@ const startAiPreviewAnimation = () => {
   }, 2000);
 };
 
-// 导航函数 - 统一引导到adventure系统
-function goToVocabulary() {
-  // 引导用户到adventure系统的词汇练习
+// 主要导航函数
+function goToChapters() {
+  // 进入结构化闯关学习
   router.push('/chapters');
 }
 
-function goToAiChat() {
-  // 引导用户到adventure系统的AI对话
-  router.push('/chapters');
+function goToFreeChat() {
+  // 进入自由AI对话
+  router.push('/aiChatExer');
 }
 
-function goToAdventure() {
-  router.push('/adventure');
-}
-
-function goToListening() {
-  // 引导用户到adventure系统的听力训练
-  router.push('/chapters');
-}
-
-// 选择AI老师
+// 选择AI老师并进入对话
 function selectTeacher(teacherType) {
-  // 可以保存用户选择的老师类型到localStorage
+  // 保存用户选择的老师类型到localStorage
   localStorage.setItem('selectedTeacher', teacherType);
-  // 引导用户到adventure系统的AI对话
-  router.push('/chapters');
+  // 直接进入AI对话页面
+  router.push('/aiChatExer');
+}
+
+// 显示混合学习模式说明
+function showMixedLearning() {
+  alert('混合学习模式：\n\n1. 先通过闯关学习掌握基础词汇和语法\n2. 再通过自由对话练习实际应用\n3. 两种模式结合，学习效果更佳！\n\n建议从闯关学习开始 🚀');
 }
 </script>
 <script>
