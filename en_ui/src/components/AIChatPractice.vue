@@ -1,4 +1,4 @@
-<template>
+ <template>
   <div class="ai-chat-practice">
     <!-- 场景选择模态框 -->
     <div v-if="showSceneModal" class="guide-modal-overlay">
@@ -42,7 +42,6 @@
           </div>
         </div>
         <div class="chat-actions">
-          <button class="action-btn" @click="showTaskSidebar = !showTaskSidebar" title="任务详情">📋</button>
           <button class="action-btn" @click="showPracticeWords" title="练习单词">📚</button>
           <button class="action-btn" @click="exitChat" title="退出对话">❌</button>
         </div>
@@ -88,6 +87,9 @@
       <div class="chat-input">
         <div class="input-container">
           <div class="input-wrapper">
+            <button class="task-btn" @click="showTaskSidebar = !showTaskSidebar" title="学习任务">
+              📋
+            </button>
             <input v-model="inputMessage" @keyup.enter="sendMessage"
               :placeholder="useEnglish ? 'Type your message in English...' : '请用英文输入你的消息...'" :disabled="loading"
               class="message-input" />
@@ -978,6 +980,32 @@ onMounted(() => {
   transform: none;
 }
 
+.task-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  flex-shrink: 0;
+}
+
+.task-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.task-btn:active {
+  transform: translateY(0);
+}
+
 .send-icon {
   font-size: 1.2rem;
 }
@@ -1423,6 +1451,12 @@ onMounted(() => {
   .send-btn {
     width: 45px;
     height: 45px;
+  }
+
+  .task-btn {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
   }
 
   .stat-card {
