@@ -45,45 +45,42 @@ router.get('/getWordProgress', async (req, res) => {
 
 router.get('/getWordList', async (req, res) => {
     try {
-        // 使用查询参数而不是请求体
-        let letter = req.query.letter;
+        // 支持章节参数，优先使用章节参数
+        const { chapter } = req.query; // 新增：章节参数 A, B, C...
+        let letter = req.query.chapter;
         let index = req.query.index;
 
-        console.log(`请求获取单词列表: 字母=${letter}, 索引=${index}`);
+        console.log(`请求获取单词列表: 章节=${chapter}, 字母=${letter}, 索引=${index}`);
 
-        // 读取词汇表数据
-        const vocabularyPath = path.join(__dirname, '..', 'vocabulary', 'CET-4.json');
-        if (!fs.existsSync(vocabularyPath)) {
-            return res.json({
-                code: 404,
-                message: '词汇表文件不存在'
-            });
-        }
+        let vocabularyPath;
+        let vocabulary;
 
-        const vocabulary = JSON.parse(fs.readFileSync(vocabularyPath, 'utf-8'));
+       
+    
+            vocabularyPath = path.join(__dirname, '..', 'vocabulary','CET-4.json');
+            console.log(vocabularyPath)
+            if (!fs.existsSync(vocabularyPath)) {
+                return res.json({
+                    code: 404,
+                    message: `章节 ${chapter} 的词汇表文件不存在`
+                });
+            }
+            vocabulary = JSON.parse(fs.readFileSync(vocabularyPath, 'utf-8'));
+            // 章节文件直接包含单词数组，不需要字母索引
+            const wordList = vocabulary[letter];
+        
 
-        // 检查请求的字母是否存在
-        if (!letter || !vocabulary[letter]) {
-            return res.json({
-                code: 400,
-                message: '无效的字母参数'
-            });
-        }
-
-        // 获取对应字母下的单词列表
-        const wordList = vocabulary[letter];
-
-        // 确定返回的单词范围planStudyWord
+        // 确定返回的单词范围
         const user = await User.findOne({ _id: req.session.userid });
-        const planStudyWord = user?.planStudyWords || 10; // 注意字段名是planStudyWords，默认10个
+        const planStudyWord = user?.planStudyWords || 10;
         console.log(`planStudyWord=${planStudyWord}`);
 
         const startIdx = index ? parseInt(index) : 0;
         const endIdx = Math.min(startIdx + planStudyWord, wordList.length);
 
-        // 检查索引是否大于词汇表长度，如果大于则更新用户进度
-        if (startIdx >= wordList.length) {
-            letter = String.fromCharCode(letter.charCodeAt(0) + 1); // 更新字母
+        // 章节模式下不需要更新 cet4.position，只有字母模式才需要
+        if (!chapter && startIdx >= wordList.length) {
+            letter = String.fromCharCode(letter.charCodeAt(0) + 1);
             index = 0;
             const userid = req.session.userid;
             const user = await User.findById(userid);
@@ -93,12 +90,10 @@ router.get('/getWordList', async (req, res) => {
 
         // 提取要返回的单词列表
         const wordsToReturn = wordList.slice(startIdx, endIdx).map(wordItem => {
-            // 如果是新格式（对象），返回完整对象
-            // 如果是旧格式（字符串），只返回单词
             return typeof wordItem === 'string' ? wordItem : wordItem;
         });
 
-        // console.log(`返回单词列表: ${JSON.stringify(wordsToReturn)}`);
+        console.log(`返回单词列表 (章节=${chapter || '字母模式'}): ${wordsToReturn.length}个单词`);
 
         return res.json({
             code: 200,
@@ -107,7 +102,9 @@ router.get('/getWordList', async (req, res) => {
                 wordListLen: wordsToReturn.length,
                 total: wordList.length,
                 currentIndex: startIdx,
-                hasMore: endIdx < wordList.length
+                hasMore: endIdx < wordList.length,
+                chapter: chapter || null, // 返回章节信息
+                mode: chapter ? 'chapter' : 'letter' // 返回模式信息
             }
         });
     } catch (error) {
@@ -139,7 +136,7 @@ router.post('/updateWordProgress', async (req, res) => {
                 message: '用户不存在'
             });
         }
-
+        
         const letter = user.cet4.position.split(':')[0];
         let index = user.cet4.position.split(':')[1];
         index = parseInt(index) + studyWords;
@@ -154,7 +151,7 @@ router.post('/updateWordProgress', async (req, res) => {
         // 如果是今天第一次学习，重置今日学习数量
         if (today.getTime() !== lastStudyDate.getTime()) {
             user.cet4.todayStudiedWords = studyWords;
-
+            
             // 计算连续天数
             const yesterday = new Date(today);
             yesterday.setDate(yesterday.getDate() - 1);

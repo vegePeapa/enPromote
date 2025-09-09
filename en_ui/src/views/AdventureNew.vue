@@ -50,6 +50,7 @@
       <WordPractice 
         v-if="currentLevel === 'wordP'" 
         :chapter="currentChapter"
+        :chapterConfig="currentChapterConfig"
         @complete="onLevelComplete"
         @back="backToMap"
       />
@@ -58,6 +59,7 @@
       <SpellPractice 
         v-if="currentLevel === 'spellP'" 
         :chapter="currentChapter"
+        :chapterConfig="currentChapterConfig"
         @complete="onLevelComplete"
         @back="backToMap"
       />
@@ -66,6 +68,7 @@
       <ListenPractice 
         v-if="currentLevel === 'listenP'" 
         :chapter="currentChapter"
+        :chapterConfig="currentChapterConfig"
         @complete="onLevelComplete"
         @back="backToMap"
       />
@@ -74,6 +77,7 @@
       <CustomsPractice 
         v-if="currentLevel === 'customsP'" 
         :chapter="currentChapter"
+        :chapterConfig="currentChapterConfig"
         @complete="onLevelComplete"
         @back="backToMap"
       />
@@ -82,6 +86,7 @@
       <AIChatPractice 
         v-if="currentLevel === 'coverP'" 
         :chapter="currentChapter"
+        :chapterConfig="currentChapterConfig"
         @complete="onLevelComplete"
         @back="backToMap"
       />
@@ -100,17 +105,25 @@ const userInfo = ref(null)
 const currentChapter = ref('A')
 const currentLevel = ref(null)
 
-// 章节配置
+// 章节配置 - 增加章节绑定属性
 const chapterConfigs = {
   A: {
+    id: 'A',                    // 章节标识符
     name: '酒店场景',
     description: '学习酒店入住、退房等相关英语',
-    backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    scene: 'hotel',             // 场景标识
+    vocabularyFile: 'A.json',   // 对应的词汇文件
+    aiPromptKey: 'A'           // AI提示词键值
   },
   B: {
+    id: 'B',                    // 章节标识符
     name: '餐厅场景',
     description: '学习餐厅点餐、用餐等相关英语', 
-    backgroundColor: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+    backgroundColor: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    scene: 'restaurant',        // 场景标识
+    vocabularyFile: 'B.json',   // 对应的词汇文件
+    aiPromptKey: 'B'           // AI提示词键值
   }
 }
 

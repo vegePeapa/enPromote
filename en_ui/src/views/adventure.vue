@@ -500,12 +500,11 @@ const backToMap = () => {
 
 const startVocabularyPractice = async () => {
   try {
-    // 获取当前用户位置
-    const position = userInfo.value.cet4.position
-    const [letter, index] = position.split(':')
-
+    // 使用当前章节获取单词列表
+    const currentChapter = userInfo.value.currentChapter || 'A'
+    
     // 获取单词列表
-    const response = await fetch(`/api/word/getWordList?letter=${letter}&index=${index}`)
+    const response = await fetch(`/api/word/getWordList?chapter=${currentChapter}&index=0`)
     const data = await response.json()
 
     if (data.code === 200) {
@@ -532,12 +531,11 @@ const resetVocabularyPractice = () => {
 
 const startSpellingPractice = async () => {
   try {
-    // 获取当前用户位置
-    const position = userInfo.value.cet4.position
-    const [letter, index] = position.split(':')
-
+    // 使用当前章节获取单词列表
+    const currentChapter = userInfo.value.currentChapter || 'A'
+    
     // 获取单词列表（复用词汇练习的单词）
-    const response = await fetch(`/api/word/getWordList?letter=${letter}&index=${index}`)
+    const response = await fetch(`/api/word/getWordList?chapter=${currentChapter}&index=0`)
     const data = await response.json()
 
     if (data.code === 200) {
@@ -607,9 +605,8 @@ const startAIQuestionPreload = async () => {
   showAILoadingModal.value = true
 
   try {
-    // 获取当前用户位置和单词列表，用于AI生成题目
-    const position = userInfo.value?.cet4?.position || 'A:1'
-    const [letter] = position.split(':')
+    // 使用当前章节而不是cet4.position
+    const currentChapter = userInfo.value?.currentChapter || 'A'
 
     // 获取复习单词列表
     const wordResponse = await fetch('/api/commendWords/getReviewWord')
@@ -622,7 +619,7 @@ const startAIQuestionPreload = async () => {
       // 可以添加一些默认单词或者从其他接口获取
     }
 
-    console.log('预加载AI题目 - PositionType:', letter, 'wordList length:', wordList.length)
+    console.log('预加载AI题目 - Chapter:', currentChapter, 'wordList length:', wordList.length)
 
     // 调用AI题目生成接口
     const response = await fetch('/api/aiApi/ai_generate_question', {
@@ -631,7 +628,7 @@ const startAIQuestionPreload = async () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        PositionType: letter,
+        PositionType: currentChapter,
         wordList: wordList
       })
     })
@@ -781,10 +778,9 @@ const startAIQuestionPractice = async () => {
     // 如果没有预加载题目，实时生成
     console.log('实时生成AI题目')
 
-    // 获取当前用户位置和单词列表
-    const position = userInfo.value.cet4.position
-    const [letter] = position.split(':')
-    currentPositionType.value = letter
+    // 使用当前章节而不是cet4.position
+    const currentChapter = userInfo.value?.currentChapter || 'A'
+    currentPositionType.value = currentChapter
 
     // 获取复习单词列表用于AI生成题目
     const response = await fetch('/api/commendWords/getReviewWord')

@@ -178,7 +178,7 @@ router.post('/ai_generate_question', async (req, res) => {
             });
         }
 
-        const { PositionType, wordList } = req.body;
+        const { PositionType, wordList, chapter } = req.body; // 新增章节参数
         if (!PositionType || !wordList) {
             logger.error("ai_generate_question请求体结构缺失");
             console.log(PositionType, wordList);
@@ -188,7 +188,7 @@ router.post('/ai_generate_question', async (req, res) => {
             });
         }
 
-        // 获取用户当前章节，自动选择对应的AI提示词
+        // 获取用户信息
         const User = require('../modules/User');
         const user = await User.findById(userid);
         if (!user) {
@@ -198,12 +198,21 @@ router.post('/ai_generate_question', async (req, res) => {
             });
         }
 
-        // 确保用户有currentChapter字段
-        const currentChapter = user.currentChapter || 'A';
+        // 优先使用请求参数中的章节，其次使用用户当前章节
+        const currentChapter = chapter || user.currentChapter || 'A';
         
-        // 根据当前章节自动选择对应的AI提示词
-        const chapterKey = currentChapter;
-        const aiPromptStr = JSON.stringify(aiPromptJson[chapterKey]);
+        // 验证章节是否存在对应的AI提示词
+        if (!aiPromptJson[currentChapter]) {
+            return res.json({
+                code: 400,
+                message: `章节 ${currentChapter} 对应的AI提示词不存在`
+            });
+        }
+        
+        // 根据章节选择对应的AI提示词
+        const aiPromptStr = JSON.stringify(aiPromptJson[currentChapter]);
+        
+        console.log(`AI题目生成 - 用户: ${userid}, 章节: ${currentChapter}, 来源: ${chapter ? '请求参数' : '用户当前章节'}`);
         
         const completion = await openai.chat.completions.create({
             messages: [
@@ -413,18 +422,21 @@ router.post('/startTaskChat', async (req, res) => {
             return res.json({ code: 401, message: '请先登录' });
         }
 
-        // 获取用户当前章节，自动选择对应的场景
+        // 优先使用请求参数中的章节，其次使用用户当前章节
+        const { chapter } = req.body;
         const User = require('../modules/User');
         const user = await User.findById(userid);
         if (!user) {
             return res.json({ code: 404, message: '用户不存在' });
         }
 
-        // 根据用户当前章节自动选择场景
-        const scene = user.currentChapter || 'A';
+        // 确定使用的场景：请求参数 > 用户当前章节 > 默认A
+        const scene = chapter || user.currentChapter || 'A';
         if (!aiChatPrompts[scene]) {
             return res.json({ code: 400, message: `章节 ${scene} 对应的场景配置不存在` });
         }
+
+        console.log(`AI对话会话 - 用户: ${userid}, 章节: ${scene}, 来源: ${chapter ? '请求参数' : '用户当前章节'}`);
 
         // 检查是否有未完成的会话
         const existingSession = await AiChatSession.findOne({

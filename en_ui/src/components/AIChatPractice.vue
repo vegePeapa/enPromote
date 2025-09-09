@@ -318,7 +318,7 @@ const startTaskChat = async () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        // 不再需要传递scene参数，后端会根据用户章节自动选择
+        chapter: props.chapter // 明确传递章节参数
       })
     })
 

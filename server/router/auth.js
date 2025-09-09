@@ -241,11 +241,6 @@ router.post('/changeinfo', async (req, res) => {
         // 合并所有更新
         const finalUpdate = { ...updateData, ...cet4Update };
 
-        // 如果 coverP 为 true，处理关卡重置和进度推进
-        if (coverP === true) {
-            await advanceToNextStageWithChapter(userid, currentChapter);
-        }
-
         // 保存章节进度
         await user.save();
 
@@ -349,34 +344,6 @@ async function advanceToNextStage(userid) {
     await user.save();
 }
 
-// 支持章节的关卡进度函数
-async function advanceToNextStageWithChapter(userid, chapter) {
-    const user = await User.findById(userid);
-    if (!user) throw new Error('User not found for stage advancement');
 
-    // 更新传统的cet4进度
-    const [letter, number] = user.cet4.position.split(':');
-    const nextLetter = String.fromCharCode(letter.charCodeAt(0) + 1);
-    user.cet4.position = `${nextLetter}:${number}`;
-    user.cet4.wordP = false;
-    user.cet4.spellP = false;
-    user.cet4.listenP = false;
-    user.cet4.customsP = false;
-    user.cet4.coverP = false;
-
-    // 更新当前章节进度
-    if (user.chapters && user.chapters.has(chapter)) {
-        const chapterProgress = user.chapters.get(chapter);
-        chapterProgress.level = (chapterProgress.level || 1) + 1;
-        chapterProgress.wordP = false;
-        chapterProgress.spellP = false;
-        chapterProgress.listenP = false;
-        chapterProgress.customsP = false;
-        chapterProgress.coverP = false;
-        user.chapters.set(chapter, chapterProgress);
-    }
-
-    await user.save();
-}
 
 module.exports = router;

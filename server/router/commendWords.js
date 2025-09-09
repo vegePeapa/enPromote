@@ -17,9 +17,9 @@ router.get('/getReviewWord', async (req, res) => {
         });
     }
     const user = await User.findById(userid);
-    const curSence = user.cet4.position.split(':')[0];
-    const chapter = req.query.chapter || user.currentChapter || 'A'; // 支持章节参数
-    
+    const curSence =  req.query.chapter || user.currentChapter || 'A'; // 支持章节参数;
+     
+    console.log(curSence);
     //找出当前用户并符合场景和章节的单词
     const userWords = await UserWord
         .find({ userId: userid, sence: curSence })
@@ -59,6 +59,9 @@ router.post('/updateWordPriority', async (req, res) => {
         // 先获取userid和通过Word获取wordid
         const { word, newStatus } = req.body;
         const userId = req.session.userid
+        const user = await User.findOne({ _id: userId });
+        const chapter = user?.currentChapter;
+        console.log(`chapter:${chapter}`);
         console.log(word);
         let wordObj = await Words.findOne({ word })
         if (!userId) {
@@ -89,6 +92,7 @@ router.post('/updateWordPriority', async (req, res) => {
                 userId,
                 wordId,
                 status: newStatus ? newStatus : 'unknown',
+                sence: chapter,
                 lastSeenAt: new Date() // 直接在创建时设置lastSeenAt
             })
             userWord.priority = await computedWordPriority(userWord);
@@ -115,8 +119,6 @@ router.post('/updateWordPriority', async (req, res) => {
         });
     }
 })
-
-
 
 // 计算单词优先度
 async function computedWordPriority(wordData) {
