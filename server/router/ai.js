@@ -221,16 +221,37 @@ router.post('/ai_generate_question', async (req, res) => {
             model: "deepseek-chat",
             stream: false
         })
-        const custom = completion.choices[0].message.content;
+        let custom = completion.choices[0].message.content;
+        
+        // 清理AI返回的内容，移除可能的markdown格式
+        if (custom.includes('```json')) {
+            custom = custom.replace(/```json\s*/g, '').replace(/```\s*$/g, '');
+        } else if (custom.includes('```')) {
+            custom = custom.replace(/```\s*/g, '');
+        }
+        
+        // 去除首尾空白字符
+        custom = custom.trim();
         
         logger.info(`用户 ${userid} 在章节 ${currentChapter} 生成AI题目`);
+        console.log('AI返回的原始内容:', completion.choices[0].message.content);
+        console.log('清理后的内容:', custom);
         
-        res.json({
-            code: 200,
-            message: "成功",
-            data: JSON.parse(custom),
-            chapter: currentChapter // 返回使用的章节信息
-        })
+        try {
+            const parsedData = JSON.parse(custom);
+            res.json({
+                code: 200,
+                message: "成功",
+                data: parsedData,
+                chapter: currentChapter // 返回使用的章节信息
+            })
+        } catch (parseError) {
+            logger.error(`JSON解析失败: ${parseError}, 原始内容: ${custom}`);
+            res.json({
+                code: 500,
+                message: "AI返回内容格式错误，无法解析JSON"
+            });
+        }
     } catch (err) {
         logger.error(`AI生成题目错误: ${err}`);
         res.json({
