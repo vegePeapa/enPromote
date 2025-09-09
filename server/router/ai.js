@@ -451,7 +451,7 @@ router.post('/startTaskChat', async (req, res) => {
             return res.json({ code: 404, message: '用户不存在' });
         }
 
-        // 确定使用的场景：请求参数 > 用户当前章节 > 默认A
+        // 确定使用的场景：请求参数 > 用户当前章节 > 默认A scene是最终得到的场景
         const scene = chapter || user.currentChapter || 'A';
         if (!aiChatPrompts[scene]) {
             return res.json({ code: 400, message: `章节 ${scene} 对应的场景配置不存在` });
@@ -459,13 +459,15 @@ router.post('/startTaskChat', async (req, res) => {
 
         console.log(`AI对话会话 - 用户: ${userid}, 章节: ${scene}, 来源: ${chapter ? '请求参数' : '用户当前章节'}`);
 
-        // 检查是否有未完成的会话
+        // 检查是否有未完成的并符合当前场景的对话
         const existingSession = await AiChatSession.findOne({
             userid: userid,
-            status: 'active'
+            status: 'active',
+            chapter: scene
         });
 
         if (existingSession) {
+            console.log('继续现有会话')
             const sceneConfig = aiChatPrompts[existingSession.scene];
             return res.json({
                 code: 200,
