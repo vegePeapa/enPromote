@@ -438,23 +438,50 @@ const completedLevels = computed(() => {
 // 方法
 const getLevelClass = (level) => {
   if (!userInfo.value) return 'locked'
-  const cet4 = userInfo.value.cet4
-  if (cet4[level]) return 'completed'
+  
+  // 优先使用多章节数据
+  if (userInfo.value.chapters && userInfo.value.currentChapter) {
+    const chapterProgress = userInfo.value.chapters[userInfo.value.currentChapter]
+    if (chapterProgress && chapterProgress[level]) return 'completed'
+  } else {
+    // 兼容旧数据结构
+    const cet4 = userInfo.value.cet4
+    if (cet4 && cet4[level]) return 'completed'
+  }
+  
   if (isLevelUnlocked(level)) return 'unlocked'
   return 'locked'
 }
 
 const getLevelProgress = (level) => {
   if (!userInfo.value) return '未开始'
-  const cet4 = userInfo.value.cet4
-  if (cet4[level]) return '✅ 已完成'
+  
+  // 优先使用多章节数据
+  if (userInfo.value.chapters && userInfo.value.currentChapter) {
+    const chapterProgress = userInfo.value.chapters[userInfo.value.currentChapter]
+    if (chapterProgress && chapterProgress[level]) return '✅ 已完成'
+  } else {
+    // 兼容旧数据结构
+    const cet4 = userInfo.value.cet4
+    if (cet4 && cet4[level]) return '✅ 已完成'
+  }
+  
   return '未开始'
 }
 
 const getLevelStatus = (level) => {
   if (!userInfo.value) return '🔒'
-  const cet4 = userInfo.value.cet4
-  if (cet4[level]) return '✅'
+  
+  // 优先使用多章节数据
+  if (userInfo.value.chapters && userInfo.value.currentChapter) {
+    const chapterProgress = userInfo.value.chapters[userInfo.value.currentChapter]
+    if (chapterProgress && chapterProgress[level]) return '✅'
+  } else {
+    // 兼容旧数据结构
+    const cet4 = userInfo.value.cet4
+    if (cet4 && cet4[level]) return '✅'
+  }
+  
   if (isLevelUnlocked(level)) return '🔓'
   return '🔒'
 }
@@ -881,11 +908,15 @@ const handleAIChatExit = () => {
 
 const completeLevel = async (level) => {
   try {
+    console.log(`🎯 完成关卡: ${level}`)
+    
     // 更新用户进度
     await changeInfo({ [level]: true })
 
     // 刷新用户信息
     await loadUserInfo()
+    
+    console.log(`✅ 关卡 ${level} 完成状态已更新`)
 
     if (level === 'wordP') {
       showLevelComplete.value = true
@@ -912,8 +943,19 @@ const loadUserInfo = async () => {
         currentChapter.value = data.currentChapter
       }
 
-      console.log('用户信息:', userInfo.value)
-      console.log('当前章节:', currentChapter.value)
+      console.log('🔄 用户信息已更新:', userInfo.value)
+      console.log('📍 当前章节:', currentChapter.value)
+      
+      // 调试章节进度信息
+      if (data.chapters && data.currentChapter) {
+        const chapterProgress = data.chapters[data.currentChapter]
+        console.log(`📊 ${data.currentChapter}章节进度:`, chapterProgress)
+      }
+      
+      // 调试旧数据结构（如果存在）
+      if (data.cet4) {
+        console.log('🔧 CET4数据:', data.cet4)
+      }
     }
   } catch (error) {
     console.error('获取用户信息失败:', error)
