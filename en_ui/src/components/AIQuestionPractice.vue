@@ -222,9 +222,25 @@ const generateQuestions = async () => {
     const data = await response.json()
 
     if (data.code === 200) {
-      // 处理新的数据结构
+      // 处理新的数据结构，支持两种题目类型
       audioScript.value = data.data.audio_script || ''
-      questions.value = data.data.fill_in_the_blanks || []
+      
+      if (data.data.fill_in_the_blanks && data.data.fill_in_the_blanks.length > 0) {
+        questions.value = data.data.fill_in_the_blanks
+        console.log('✅ 实时生成填空题类型')
+      } else if (data.data.comprehension_questions && data.data.comprehension_questions.length > 0) {
+        // 将理解题转换为填空题格式
+        questions.value = data.data.comprehension_questions.map(q => ({
+          sentence: q.question,
+          answer: q.correct_answer,
+          options: q.options
+        }))
+        console.log('✅ 实时生成理解题类型并转换格式')
+      } else {
+        questions.value = []
+        console.warn('⚠️ 实时生成未找到有效的题目数据')
+      }
+      
       resetPractice()
 
       // 通知父组件题目已生成，用于存储
@@ -261,12 +277,30 @@ const loadPreloadedQuestions = () => {
 
     // 处理预加载的数据结构
     audioScript.value = data.audio_script || ''
-    questions.value = data.fill_in_the_blanks || []
+    
+    // 支持两种题目类型：填空题和理解题
+    if (data.fill_in_the_blanks && data.fill_in_the_blanks.length > 0) {
+      questions.value = data.fill_in_the_blanks
+      console.log('✅ 加载填空题类型')
+    } else if (data.comprehension_questions && data.comprehension_questions.length > 0) {
+      // 将理解题转换为填空题格式
+      questions.value = data.comprehension_questions.map(q => ({
+        sentence: q.question,
+        answer: q.correct_answer,
+        options: q.options
+      }))
+      console.log('✅ 加载理解题类型并转换格式')
+    } else {
+      questions.value = []
+      console.warn('⚠️ 未找到有效的题目数据')
+    }
+    
     resetPractice()
 
     console.log('✅ 预加载题目加载成功:')
     console.log('  - 音频脚本长度:', audioScript.value.length)
     console.log('  - 题目数量:', questions.value.length)
+    console.log('  - 题目类型:', data.fill_in_the_blanks ? '填空题' : '理解题')
     console.log('  - 题目详情:', questions.value)
   } catch (error) {
     console.error('❌ 加载预加载题目时出错:', error)
