@@ -228,8 +228,9 @@
 
       <!-- 使用AI题目练习组件 -->
       <AIQuestionPractice v-if="!showAIQuestionComplete" :positionType="currentPositionType" :wordList="aiQuestionWords"
-        @complete="handleAIQuestionComplete" @correct="handleAIQuestionCorrect"
-        @incorrect="handleAIQuestionIncorrect" />
+        :preloadedQuestions="preloadedAIQuestions" :usePreloaded="isAIQuestionsPreloaded"
+        @complete="handleAIQuestionComplete" @correct="handleAIQuestionCorrect" @incorrect="handleAIQuestionIncorrect"
+        @answer="handleAIQuestionAnswer" />
 
       <!-- 关卡完成 -->
       <div class="level-complete" v-if="showAIQuestionComplete">
@@ -285,6 +286,10 @@
         </div>
       </div>
     </div>
+
+    <!-- AI题目加载窗口 -->
+    <AIQuestionLoadingModal :visible="showAILoadingModal" @continue="handleAILoadingContinue"
+      @close="handleAILoadingContinue" ref="aiLoadingModal" />
   </div>
 </template>
 
@@ -298,6 +303,7 @@ import SpellingPractice from '@/components/SpellingPractice.vue'
 import ListeningPractice from '@/components/ListeningPractice.vue'
 import AIQuestionPractice from '@/components/AIQuestionPractice.vue'
 import AIChatPractice from '@/components/AIChatPractice.vue'
+import AIQuestionLoadingModal from '@/components/AIQuestionLoadingModal.vue'
 
 // 路由相关
 const route = useRoute()
@@ -341,6 +347,12 @@ const currentPositionType = ref('')
 // 第五关：AI对话相关数据
 const showAIChatComplete = ref(false)
 const aiChatStats = ref({ messageCount: 0, userMessages: 0, aiMessages: 0 })
+
+// AI题目预加载相关
+const showAILoadingModal = ref(false)
+const preloadedAIQuestions = ref(null)
+const aiQuestionAnswers = ref([]) // 存储用户答题记录
+const isAIQuestionsPreloaded = ref(false)
 
 // 计算属性
 const currentVocabularyWord = computed(() => {
@@ -554,9 +566,118 @@ const handleNext = (index) => {
   currentWordIndex.value = index
 }
 
-const handleVocabularyComplete = async () => {
-  // 完成第一关
-  await completeLevel('wordP')
+const handleVocabularyComplete = async (stats) => {
+  console.log('词汇练习完成:', stats)
+
+  // 如果有统计数据，更新计数
+  if (stats) {
+    knownWords.value = stats.knownWords || knownWords.value
+    vagueWords.value = stats.vagueWords || vagueWords.value
+    unknownWords.value = stats.unknownWords || unknownWords.value
+  }
+
+  // 显示第一关完成提示，然后预加载AI题目
+  await showFirstLevelCompleteAndPreload()
+}
+
+// 第一关完成后的预加载流程
+const showFirstLevelCompleteAndPreload = async () => {
+  // 先显示第一关完成的提示
+  const message = `🎉 第一关完成！\n\n您的单词掌握情况：\n✅ 认识：${knownWords.value}个\n🤔 模糊：${vagueWords.value}个\n❓ 不认识：${unknownWords.value}个\n\n您的单词情况我们基本了解，点击确定AI将为您生成后续专属题目！`
+
+  if (confirm(message)) {
+    // 用户点击确定，开始预加载AI题目
+    await startAIQuestionPreload()
+    // 完成第一关
+    await completeLevel('wordP')
+  } else {
+    // 用户取消，直接完成第一关
+    await completeLevel('wordP')
+  }
+}
+
+// 预加载AI题目
+const startAIQuestionPreload = async () => {
+  showAILoadingModal.value = true
+
+  try {
+    // 获取当前用户位置和单词列表，用于AI生成题目
+    const position = userInfo.value?.cet4?.position || 'A:1'
+    const [letter] = position.split(':')
+
+    // 获取复习单词列表
+    const wordResponse = await fetch('/api/commendWords/getReviewWord')
+    const wordData = await wordResponse.json()
+    const wordList = wordData.code === 200 ? (wordData.data.words || []) : []
+
+    // 确保有单词列表，否则使用默认单词
+    if (wordList.length === 0) {
+      console.warn('没有复习单词，使用默认单词列表')
+      // 可以添加一些默认单词或者从其他接口获取
+    }
+
+    console.log('预加载AI题目 - PositionType:', letter, 'wordList length:', wordList.length)
+
+    // 调用AI题目生成接口
+    const response = await fetch('/api/aiApi/ai_generate_question', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        PositionType: letter,
+        wordList: wordList
+      })
+    })
+
+    const data = await response.json()
+
+    console.log('AI题目生成响应:', data)
+
+    if (data.code === 200) {
+      // 存储预加载的题目
+      preloadedAIQuestions.value = data.data
+      isAIQuestionsPreloaded.value = true
+
+      // 保存到localStorage，防止页面刷新丢失
+      localStorage.setItem('preloadedAIQuestions', JSON.stringify({
+        data: data.data,
+        chapter: currentChapter.value,
+        timestamp: Date.now()
+      }))
+
+      console.log('AI题目预加载成功:', data.data)
+
+      // 模拟加载时间，让用户看到加载过程
+      setTimeout(() => {
+        completeAIQuestionPreload()
+      }, 4000) // 4秒后完成
+
+    } else {
+      console.error('AI题目生成失败:', data)
+      showAILoadingModal.value = false
+      alert(`AI题目生成失败: ${data.message || '未知错误'}`)
+    }
+
+  } catch (error) {
+    console.error('预加载AI题目失败:', error)
+    showAILoadingModal.value = false
+    alert('网络错误，请检查连接后重试')
+  }
+}
+
+// 完成AI题目预加载
+const completeAIQuestionPreload = () => {
+  showAILoadingModal.value = false
+  // 显示惊喜提示
+  setTimeout(() => {
+    alert('🎉 太棒了！AI已经为您生成了专属的场景练习题目，快去第四关体验吧！')
+  }, 500)
+}
+
+// 处理加载窗口的继续按钮
+const handleAILoadingContinue = () => {
+  completeAIQuestionPreload()
 }
 
 const handleSpellingComplete = async () => {
@@ -612,6 +733,39 @@ const handleListeningIncorrect = (index) => {
 
 const startAIQuestionPractice = async () => {
   try {
+    // 优先使用预加载的题目
+    if (isAIQuestionsPreloaded.value && preloadedAIQuestions.value) {
+      console.log('使用预加载的AI题目')
+      showAIQuestionComplete.value = false
+      aiQuestionStats.value = { total: 0, correct: 0, accuracy: 0 }
+      currentView.value = 'level-customsP'
+      return
+    }
+
+    // 检查localStorage中是否有预加载的题目
+    const savedQuestions = localStorage.getItem('preloadedAIQuestions')
+    if (savedQuestions) {
+      try {
+        const parsed = JSON.parse(savedQuestions)
+        // 检查是否是当前章节的题目，且不超过1小时
+        if (parsed.chapter === currentChapter.value &&
+          (Date.now() - parsed.timestamp) < 3600000) {
+          preloadedAIQuestions.value = parsed.data
+          isAIQuestionsPreloaded.value = true
+          console.log('使用localStorage中的预加载题目')
+          showAIQuestionComplete.value = false
+          aiQuestionStats.value = { total: 0, correct: 0, accuracy: 0 }
+          currentView.value = 'level-customsP'
+          return
+        }
+      } catch (e) {
+        console.error('解析localStorage题目失败:', e)
+      }
+    }
+
+    // 如果没有预加载题目，实时生成
+    console.log('实时生成AI题目')
+
     // 获取当前用户位置和单词列表
     const position = userInfo.value.cet4.position
     const [letter] = position.split(':')
@@ -644,6 +798,29 @@ const handleAIQuestionCorrect = (index) => {
 
 const handleAIQuestionIncorrect = (index) => {
   // AI题目练习错误处理
+}
+
+// 处理AI题目答题记录
+const handleAIQuestionAnswer = (answerData) => {
+  // 存储用户答题记录
+  aiQuestionAnswers.value.push({
+    questionIndex: answerData.questionIndex,
+    selectedAnswer: answerData.selectedAnswer,
+    correctAnswer: answerData.correctAnswer,
+    isCorrect: answerData.isCorrect,
+    timestamp: Date.now()
+  })
+
+  // 保存到localStorage
+  const savedAnswers = JSON.parse(localStorage.getItem('aiQuestionAnswers') || '[]')
+  savedAnswers.push({
+    ...answerData,
+    chapter: currentChapter.value,
+    timestamp: Date.now()
+  })
+  localStorage.setItem('aiQuestionAnswers', JSON.stringify(savedAnswers))
+
+  console.log('答题记录已保存:', answerData)
 }
 
 const startAIChatPractice = () => {
@@ -724,9 +901,36 @@ const goToChapterSelection = () => {
   router.push('/chapters')
 }
 
+// 检查localStorage中的预加载题目
+const checkPreloadedQuestions = () => {
+  try {
+    const savedQuestions = localStorage.getItem('preloadedAIQuestions')
+    if (savedQuestions) {
+      const parsed = JSON.parse(savedQuestions)
+      // 检查是否是当前章节的题目，且不超过1小时
+      if (parsed.chapter === currentChapter.value &&
+        (Date.now() - parsed.timestamp) < 3600000) {
+        preloadedAIQuestions.value = parsed.data
+        isAIQuestionsPreloaded.value = true
+        console.log('发现localStorage中的预加载题目')
+      } else {
+        // 清除过期的题目
+        localStorage.removeItem('preloadedAIQuestions')
+        console.log('清除过期的预加载题目')
+      }
+    }
+  } catch (error) {
+    console.error('检查预加载题目失败:', error)
+    localStorage.removeItem('preloadedAIQuestions')
+  }
+}
+
 // 页面加载时获取用户信息
 onMounted(async () => {
   await loadUserInfo()
+
+  // 检查预加载题目
+  checkPreloadedQuestions()
 
   // 检查路由参数，支持直接进入特定关卡
   const levelParam = route.query.level

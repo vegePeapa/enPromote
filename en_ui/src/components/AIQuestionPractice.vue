@@ -139,11 +139,19 @@ const props = defineProps({
   wordList: {
     type: Array,
     required: true
+  },
+  preloadedQuestions: {
+    type: Object,
+    default: null
+  },
+  usePreloaded: {
+    type: Boolean,
+    default: false
   }
 })
 
 // Emits
-const emit = defineEmits(['complete', 'correct', 'incorrect'])
+const emit = defineEmits(['complete', 'correct', 'incorrect', 'answer'])
 
 // 响应式数据
 const loading = ref(false)
@@ -184,6 +192,13 @@ watch(() => [props.positionType, props.wordList], () => {
 
 // 方法
 const generateQuestions = async () => {
+  // 优先使用预加载的题目
+  if (props.usePreloaded && props.preloadedQuestions) {
+    console.log('使用预加载的AI题目')
+    loadPreloadedQuestions()
+    return
+  }
+
   if (!props.positionType || props.wordList.length === 0) return
 
   try {
@@ -212,6 +227,27 @@ const generateQuestions = async () => {
     }
   } catch (error) {
     console.error('生成题目请求失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 加载预加载的题目
+const loadPreloadedQuestions = () => {
+  try {
+    loading.value = true
+
+    const data = props.preloadedQuestions
+
+    // 处理预加载的数据结构
+    audioScript.value = data.audio_script || ''
+    questions.value = data.fill_in_the_blanks || []
+    resetPractice()
+
+    console.log('预加载题目加载成功:', questions.value)
+  } catch (error) {
+    console.error('加载预加载题目时出错:', error)
+    questions.value = []
   } finally {
     loading.value = false
   }
@@ -248,6 +284,15 @@ const submitAnswer = () => {
   } else {
     emit('incorrect', currentQuestionIndex.value)
   }
+
+  // 发送答题记录
+  emit('answer', {
+    questionIndex: currentQuestionIndex.value,
+    selectedAnswer: selectedOptionText,
+    correctAnswer: correctAnswer,
+    isCorrect: isCorrect.value,
+    question: currentQuestion.value
+  })
 }
 
 const nextQuestion = () => {
