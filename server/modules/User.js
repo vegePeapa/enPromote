@@ -14,30 +14,7 @@ let userSchema = new mongoose.Schema({
             type: String,
             default: 'A:0'
         },
-        wordP: {
-            type: Boolean,
-            default: false
-        },
-
-        spellP: {
-            type: Boolean,
-            default: false
-        },
-
-        listenP: {
-            type: Boolean,
-            default: false
-        },
-
-        customsP: {
-            type: Boolean,
-            default: false
-        },
-
-        coverP: {
-            type: Boolean,
-            default: false
-        },
+        // 移除冗余的关卡状态字段，只保留学习统计数据
         lastStudyTime: {
             type: Date,
             default: Date.now

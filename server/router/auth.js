@@ -227,13 +227,11 @@ router.post('/changeinfo', async (req, res) => {
 
         const currentChapter = user.currentChapter || 'A';
 
-        // 关卡进度更新 - 同时更新cet4和当前章节
+        // 关卡进度更新 - 只更新当前章节，移除cet4冗余字段
         const progressFields = { wordP, spellP, listenP, customsP, coverP };
         for (const field in progressFields) {
             if (progressFields[field] !== undefined) {
-                cet4Update[`cet4.${field}`] = !!progressFields[field]; // 转换为布尔值
-                
-                // 同时更新当前章节的进度
+                // 只更新当前章节的进度
                 const chapterProgress = user.chapters.get(currentChapter) || {};
                 chapterProgress[field] = !!progressFields[field];
                 user.chapters.set(currentChapter, chapterProgress);

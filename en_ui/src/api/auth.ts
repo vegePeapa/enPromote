@@ -46,11 +46,7 @@ interface UserInfo {
         todayStudiedWords: number;
         streakDays: number;
         lastStudyDate: string;
-        wordP: boolean;
-        spellP: boolean;
-        listenP: boolean;
-        customsP: boolean;
-        coverP: boolean;
+        // 移除冗余的关卡状态字段
     };
     todayWords: number;
     streakDays: number;
@@ -59,7 +55,7 @@ interface UserInfo {
     planReviweWords: number;
     question_completed: boolean;
     ai_choose_completed: boolean;
-    // 多章节支持
+    // 统一使用 chapters 管理关卡状态
     chapters: {
         [key: string]: {
             level: number;
