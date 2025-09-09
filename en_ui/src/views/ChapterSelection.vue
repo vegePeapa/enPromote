@@ -318,8 +318,9 @@ onMounted(() => {
 }
 
 .level-dot.completed {
-  background: rgba(255, 255, 255, 0.9);
+  background: #FFD700;
   color: #333;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
 }
 
 .level-dot.current {
