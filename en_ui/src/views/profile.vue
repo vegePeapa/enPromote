@@ -48,7 +48,7 @@
                     </div>
 
                     <!-- 学习计划设置 -->
-                    <div class="setting-group">
+                    <!-- <div class="setting-group">
                         <h4>学习计划</h4>
                         <div class="form-row">
                             <label>每日学习单词数:</label>
@@ -60,7 +60,7 @@
                             <input v-model.number="editForm.planReviweWords" type="number" min="10" max="50"
                                 placeholder="1-50" :disabled="loading" />
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- 操作按钮 -->
                     <div class="form-actions">

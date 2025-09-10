@@ -1,5 +1,5 @@
 <template>
-  <div class="adventure-container">
+  <div class="adventure-container" :class="getChapterThemeClass()">
     <!-- 闯关地图 -->
     <div class="adventure-map" v-if="currentView === 'map'">
       <div class="map-header">
@@ -982,6 +982,12 @@ const goToChapterSelection = () => {
   router.push('/chapters')
 }
 
+// 获取章节主题类
+const getChapterThemeClass = () => {
+  const chapter = userInfo.value?.currentChapter || currentChapter.value || 'A'
+  return `theme-${chapter.toLowerCase()}`
+}
+
 // 检查localStorage中的预加载题目
 const checkPreloadedQuestions = () => {
   try {
@@ -1053,8 +1059,70 @@ onMounted(async () => {
 <style scoped>
 .adventure-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
+  position: relative;
+  transition: all 0.5s ease;
+}
+
+/* 默认背景 */
+.adventure-container {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* 酒店场景主题 - 蓝色商务风格 */
+.adventure-container.theme-a {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 25%, #4a90e2 50%, #667eea 75%, #764ba2 100%);
+  background-size: 400% 400%;
+  animation: hotelGradient 20s ease infinite;
+}
+
+.adventure-container.theme-a::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes hotelGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* 餐厅场景主题 - 暖色美食风格 */
+.adventure-container.theme-b {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 25%, #ff9ff3 50%, #f368e0 75%, #ff6348 100%);
+  background-size: 400% 400%;
+  animation: restaurantGradient 18s ease infinite;
+}
+
+.adventure-container.theme-b::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 30% 70%, rgba(255, 107, 107, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(238, 90, 36, 0.2) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes restaurantGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .adventure-map {
