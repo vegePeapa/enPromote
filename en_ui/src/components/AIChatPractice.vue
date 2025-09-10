@@ -882,6 +882,25 @@ onMounted(() => {
 .message-wrapper {
   margin-bottom: 1.5rem;
   animation: fadeInUp 0.3s ease-out;
+  display: flex;
+  width: 100%;
+}
+
+.message-wrapper:has(.user-message) {
+  justify-content: flex-end;
+}
+
+.message-wrapper:has(.ai-message) {
+  justify-content: flex-start;
+}
+
+/* 兼容不支持:has()的浏览器 */
+.message-wrapper .user-message {
+  margin-left: auto;
+}
+
+.message-wrapper .ai-message {
+  margin-right: auto;
 }
 
 @keyframes fadeInUp {
@@ -899,23 +918,37 @@ onMounted(() => {
   display: flex;
   gap: 1rem;
   max-width: 85%;
+  margin-bottom: 1rem;
 }
 
 .user-message {
   margin-left: auto;
+  margin-right: 0;
   flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+
+.ai-message {
+  margin-left: 0;
+  margin-right: auto;
+  flex-direction: row;
+  justify-content: flex-start;
 }
 
 .user-message .message-content {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  margin-left: 0;
+  margin-right: 0.5rem;
 }
 
 .ai-message .message-content {
   background: white;
   border: 1px solid #e0e0e0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-left: 0.5rem;
+  margin-right: 0;
 }
 
 .message-avatar {
