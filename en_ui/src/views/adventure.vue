@@ -896,14 +896,28 @@ const startAIChatPractice = () => {
 }
 
 const handleAIChatComplete = async (stats) => {
-  aiChatStats.value = stats
-  showAIChatComplete.value = true
-  await completeLevel('coverP')
+  // 只有真正完成任务时才标记为完成
+  if (stats.completed) {
+    aiChatStats.value = stats
+    showAIChatComplete.value = true
+    await completeLevel('coverP')
+  } else {
+    // 如果没有完成，只是退出到地图
+    aiChatStats.value = stats
+    backToMap()
+  }
 }
 
-const handleAIChatExit = () => {
-  // 用户主动退出对话，也算完成
-  handleAIChatComplete(aiChatStats.value)
+const handleAIChatExit = (stats) => {
+  // 用户主动退出对话，不算完成，直接返回地图
+  console.log('用户主动退出AI对话，未完成任务')
+  aiChatStats.value = stats || {
+    messageCount: 0,
+    userMessages: 0,
+    aiMessages: 0,
+    completed: false
+  }
+  backToMap()
 }
 
 const completeLevel = async (level) => {

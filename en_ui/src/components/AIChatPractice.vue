@@ -497,7 +497,16 @@ const sendMessage = async () => {
             try {
               const parsed = JSON.parse(data)
               if (parsed.completed) {
+                console.log('🎉 任务真正完成!')
                 completionReport.value = parsed.report
+                // 触发真正的任务完成事件
+                emit('complete', {
+                  completedTasks: tasks.value.filter(t => t.completed).length,
+                  totalTasks: tasks.value.length,
+                  progress: progress.value,
+                  isRealCompletion: true, // 标记这是真正的任务完成
+                  report: parsed.report
+                })
                 showCompletionModal()
               }
             } catch (e) {
@@ -575,10 +584,23 @@ const showPracticeWords = async () => {
 
 // 退出对话
 const exitChat = () => {
+  // 发送退出事件，而不是完成事件
+  emit('exit', {
+    messageCount: messages.value.length,
+    userMessages: messages.value.filter(msg => msg.role === 'user').length,
+    aiMessages: messages.value.filter(msg => msg.role === 'assistant').length,
+    completed: false // 标记为未完成
+  })
+}
+
+// 任务真正完成时调用
+const completeTask = (completionData) => {
   emit('complete', {
     messageCount: messages.value.length,
     userMessages: messages.value.filter(msg => msg.role === 'user').length,
-    aiMessages: messages.value.filter(msg => msg.role === 'assistant').length
+    aiMessages: messages.value.filter(msg => msg.role === 'assistant').length,
+    completed: true, // 标记为已完成
+    ...completionData
   })
 }
 
