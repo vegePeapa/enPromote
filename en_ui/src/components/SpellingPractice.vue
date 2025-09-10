@@ -53,6 +53,7 @@
         <div class="result-actions">
           <button class="next-btn" @click="nextWord">
             {{ currentIndex < words.length - 1 ? '下一个单词' : '完成练习' }} </button>
+          <p class="result-hint">💡 按回车键快速继续</p>
         </div>
       </div>
 
@@ -131,14 +132,29 @@ const showHint = () => {
 }
 
 const handleKeyPress = (event) => {
-  if (showResult.value) return
-
   const key = event.key.toLowerCase()
+
+  // 如果显示结果，Enter键进入下一个单词
+  if (showResult.value) {
+    if (key === 'enter') {
+      nextWord()
+    }
+    return
+  }
 
   if (key === 'enter') {
     checkSpelling()
   } else if (key === 'backspace') {
-    if (currentPosition.value > 0) {
+    // 修复删除逻辑：允许删除当前位置的字母
+    if (currentPosition.value > 0 && userInput.value[currentPosition.value] === '') {
+      // 如果当前位置为空，删除前一个位置的字母
+      currentPosition.value--
+      userInput.value[currentPosition.value] = ''
+    } else if (userInput.value[currentPosition.value] !== '') {
+      // 如果当前位置有字母，删除当前位置的字母
+      userInput.value[currentPosition.value] = ''
+    } else if (currentPosition.value > 0) {
+      // 如果当前位置为空且不是第一个位置，移动到前一个位置
       currentPosition.value--
       userInput.value[currentPosition.value] = ''
     }
@@ -383,6 +399,13 @@ onUnmounted(() => {
 .next-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.result-hint {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #888;
+  font-style: italic;
 }
 
 .input-hint {
