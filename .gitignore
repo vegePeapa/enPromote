@@ -1,6 +1,4 @@
-server/logs/access.log
-server/logs/combined.log
-server/logs/error.log
-server/node_modules
-server/updateCET4.js
-test.html
+./server/node_modules
+./server/logs/access.log
+./server/logs/combined.log
+./server/logs/error.log
