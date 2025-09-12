@@ -8,6 +8,7 @@ const path = require('path');
 const { getWordFromApi } = require('./third_part/getword');
 const { logger, logApiError, logUserAction, logDbError } = require('../utils/logger');
 const { LEGAL_TLS_SOCKET_OPTIONS } = require('mongodb');
+const http = require('http');
 
 router.get('/getWordProgress', async (req, res) => {
     try {
@@ -55,20 +56,20 @@ router.get('/getWordList', async (req, res) => {
         let vocabularyPath;
         let vocabulary;
 
-       
-    
-            vocabularyPath = path.join(__dirname, '..', 'vocabulary','CET-4.json');
-            console.log(vocabularyPath)
-            if (!fs.existsSync(vocabularyPath)) {
-                return res.json({
-                    code: 404,
-                    message: `章节 ${chapter} 的词汇表文件不存在`
-                });
-            }
-            vocabulary = JSON.parse(fs.readFileSync(vocabularyPath, 'utf-8'));
-            // 章节文件直接包含单词数组，不需要字母索引
-            const wordList = vocabulary[letter];
-        
+
+
+        vocabularyPath = path.join(__dirname, '..', 'vocabulary', 'CET-4.json');
+        console.log(vocabularyPath)
+        if (!fs.existsSync(vocabularyPath)) {
+            return res.json({
+                code: 404,
+                message: `章节 ${chapter} 的词汇表文件不存在`
+            });
+        }
+        vocabulary = JSON.parse(fs.readFileSync(vocabularyPath, 'utf-8'));
+        // 章节文件直接包含单词数组，不需要字母索引
+        const wordList = vocabulary[letter];
+
 
         // 确定返回的单词范围
         const user = await User.findOne({ _id: req.session.userid });
@@ -136,7 +137,7 @@ router.post('/updateWordProgress', async (req, res) => {
                 message: '用户不存在'
             });
         }
-        
+
         const letter = user.cet4.position.split(':')[0];
         let index = user.cet4.position.split(':')[1];
         index = parseInt(index) + studyWords;
@@ -151,7 +152,7 @@ router.post('/updateWordProgress', async (req, res) => {
         // 如果是今天第一次学习，重置今日学习数量
         if (today.getTime() !== lastStudyDate.getTime()) {
             user.cet4.todayStudiedWords = studyWords;
-            
+
             // 计算连续天数
             const yesterday = new Date(today);
             yesterday.setDate(yesterday.getDate() - 1);
@@ -242,33 +243,30 @@ router.get('/getWordAudio', async (req, res) => {
         if (!wordDocument) {
             return res.json({ code: 404, message: `${word}单词不存在` });
         }
-        if (!wordDocument.phonetics || wordDocument.phonetics.length === 0) {
-            return res.json({ code: 404, message: `${word}单词发音不存在` });
-        }
-        const phonetics = wordDocument.phonetics;
-
-        // 查找有效的音频URL
-        let resultAudio = null;
-        for (let i = 0; i < phonetics.length; i++) {
-            if (phonetics[i].audio) {
-                resultAudio = phonetics[i].audio;
-                break;
+        // 优先尝试有道词典音频(说真的如果有道的都没有下面的dictionaryapi也不会有，下面的就作废吧)
+        const voiceType = 2 //美式发音
+        const youDaoUrl = `http://dict.youdao.com/dictvoice?audio=${word}&type=${voiceType}`
+        http.get(youDaoUrl, (youdaoRes) => {
+            if (youdaoRes.statusCode !== 200) {
+                console.error(`请求失败，状态码：${youdaoRes.statusCode}`);
+                res.json({
+                    code: 404,
+                    message: `${word}单词发音不存在`
+                })
+                res.resume(); // 释放资源
+                return;
             }
-        }
+            res.json({
+                code: 200,
+                data: youDaoUrl
+            })
+        })
 
-        // 如果没有找到音频，返回404
-        if (!resultAudio) {
-            return res.json({ code: 404, message: `${word}单词发音不存在` });
-        }
 
-        // 找到音频，返回成功响应
-        res.json({
-            code: 200,
-            data: resultAudio,
-        });
+
     } catch (err) {
         console.error('API错误:', err.message);
-        res.json({
+        res.status(500).json({
             code: 500,
             message: '获取单词信息失败',
             error: err.message,
