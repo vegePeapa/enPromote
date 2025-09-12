@@ -175,13 +175,13 @@ const currentChapter = ref('A')
 const userInfo = ref({
   username: '',
   currentChapter: 'A',
-  chapterProgress: {},
-  levelProgress: {}
+  chapterProgress: {} as { [chapterKey: string]: { [levelType: string]: string } },
+  levelProgress: {} as { [key: string]: any }
 })
 
 // 章节信息
 const chapterInfo = computed(() => {
-  const chapters = {
+  const chapters: { [key: string]: { name: string; description: string } } = {
     A: { name: '酒店场景', description: '学习酒店相关的英语对话和词汇' },
     B: { name: '餐厅场景', description: '掌握餐厅用餐的英语表达' },
     C: { name: '机场场景', description: '熟悉机场和旅行相关英语' }
@@ -227,7 +227,7 @@ const currentChapterLevels = computed(() => [
 
 // 下一章节预览
 const nextChapterPreview = computed(() => {
-  const nextChapters = {
+  const nextChapters: { [key: string]: { name: string; description: string } | null } = {
     A: { name: '餐厅场景', description: '掌握餐厅用餐的英语表达' },
     B: { name: '机场场景', description: '熟悉机场和旅行相关英语' },
     C: null
@@ -237,7 +237,7 @@ const nextChapterPreview = computed(() => {
 
 // 用户进度计算
 const userProgress = computed(() => {
-  const progress = userInfo.value.chapterProgress[currentChapter.value] || {}
+  const progress = userInfo.value.chapterProgress?.[currentChapter.value] || {}
   const totalLevels = currentChapterLevels.value.length
   const completedLevels = Object.values(progress).filter(status => status === 'completed').length
   return Math.round((completedLevels / totalLevels) * 100)
@@ -245,7 +245,7 @@ const userProgress = computed(() => {
 
 // 获取关卡状态
 function getLevelStatus(levelType: string) {
-  const progress = userInfo.value.chapterProgress[currentChapter.value] || {}
+  const progress = userInfo.value.chapterProgress?.[currentChapter.value] || {}
   return progress[levelType] || 'locked'
 }
 
@@ -272,20 +272,25 @@ function enterLevel(levelType: string) {
 // 完成关卡
 function completeLevel(levelType: string) {
   console.log(`完成关卡: ${levelType}`)
-  
+
+  // 确保 chapterProgress 存在
+  if (!userInfo.value.chapterProgress) {
+    userInfo.value.chapterProgress = {}
+  }
+
   // 更新用户进度
   if (!userInfo.value.chapterProgress[currentChapter.value]) {
     userInfo.value.chapterProgress[currentChapter.value] = {}
   }
   userInfo.value.chapterProgress[currentChapter.value][levelType] = 'completed'
-  
+
   // 解锁下一关卡
   const currentIndex = currentChapterLevels.value.findIndex(l => l.type === levelType)
   if (currentIndex < currentChapterLevels.value.length - 1) {
     const nextLevel = currentChapterLevels.value[currentIndex + 1]
     userInfo.value.chapterProgress[currentChapter.value][nextLevel.type] = 'current'
   }
-  
+
   // 返回地图
   backToMap()
 }
@@ -313,11 +318,18 @@ function goBack() {
 async function fetchUserInfo() {
   try {
     const response = await getUserInfo()
+    // axios 响应数据在 response.data 中
     const data = response.data || response
-    
+
     if (data.code === 200) {
-      userInfo.value = data.data
-      currentChapter.value = data.data.currentChapter || 'A'
+      // 直接使用 data，因为用户信息字段已经在顶层
+      userInfo.value = {
+        username: data.username || '',
+        currentChapter: data.currentChapter || 'A',
+        chapterProgress: data.chapterProgress || {},
+        levelProgress: data.levelProgress || {}
+      }
+      currentChapter.value = data.currentChapter || 'A'
       console.log('用户信息获取成功:', userInfo.value)
     } else {
       console.error('获取用户信息失败:', data.message)

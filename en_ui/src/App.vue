@@ -20,9 +20,11 @@ const showQuestionModal = ref(false)
 const checkQuestionStatus = async () => {
   try {
     const response = await getUserInfo()
-    if (response.data && response.data.code === 200) {
+    // axios 响应数据在 response.data 中
+    const data = response.data || response
+    if (data && data.code === 200) {
       // 如果用户未完成问卷，显示问卷模态框
-      if (!response.data.question_completed) {
+      if (!data.question_completed) {
         showQuestionModal.value = true
       }
     }
