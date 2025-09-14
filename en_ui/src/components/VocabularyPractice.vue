@@ -56,7 +56,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { updateWordPriority } from '@/api/word'
+import { updateWordPriority, getWordAudio } from '@/api/word'
 // Props
 const props = defineProps({
   words: {
@@ -76,7 +76,6 @@ const emit = defineEmits(['know', 'vague', 'unknown', 'next'])
 const currentWordIndex = ref(props.currentIndex)
 const showMeaning = ref(false)
 
-// 计算属性
 const progressPercentage = computed(() => {
   if (props.words.length === 0) return 0
   return (currentWordIndex.value / props.words.length) * 100
@@ -101,6 +100,19 @@ const currentMeaning = computed(() => {
 watch(() => props.currentIndex, (newIndex) => {
   currentWordIndex.value = newIndex
   showMeaning.value = false
+})
+// 监听currentWord以播放音频
+watch(currentWord, async (newWord) => {
+  if (newWord) {
+    const result = await getWordAudio({ word: newWord });
+    const audioUrl = result.data.data;
+    console.log('audioUrl:' + audioUrl);
+
+    const audio = new Audio(audioUrl);
+    audio.play().catch(err => {
+      console.error('词汇练习音频播放失败', err);
+    })
+  }
 })
 
 // 方法

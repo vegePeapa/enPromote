@@ -53,7 +53,7 @@
         <div class="result-actions">
           <button class="next-btn" @click="nextWord">
             {{ currentIndex < words.length - 1 ? '下一个单词' : '完成练习' }} </button>
-          <p class="result-hint">💡 按回车键快速继续</p>
+              <p class="result-hint">💡 按回车键快速继续</p>
         </div>
       </div>
 
@@ -74,6 +74,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { getWordAudio } from '@/api/word'
 
 // Props
 const props = defineProps({
@@ -97,6 +98,11 @@ const currentPosition = ref(0)
 const showResult = ref(false)
 const isCorrect = ref(false)
 const hintShown = ref(false)
+const audioEnd = ref(false)
+
+
+
+
 
 // 计算属性
 const progressPercentage = computed(() => {
@@ -118,6 +124,25 @@ watch(currentWord, () => {
   resetWordState()
 })
 
+// showResult == true说明用户打完 播放音频
+watch(showResult, async (next_showResult) => {
+  // console.log(next_showResult.valueOf());
+  if (next_showResult.valueOf() == true) {
+    const result = await getWordAudio({ word: currentWord.value.word });
+    const audioUrl = result.data.data;
+    // console.log('audioUrl:' + audioUrl);
+    const audio = new Audio(audioUrl);
+
+    audio.onended = () => {
+      audioEnd.value = true
+    }
+
+    audio.play().catch(err => {
+      console.error('词汇练习音频播放失败', err);
+    })
+  }
+})
+
 // 方法
 const resetWordState = () => {
   userInput.value = new Array(wordLetters.value.length).fill('')
@@ -134,15 +159,17 @@ const showHint = () => {
 const handleKeyPress = (event) => {
   const key = event.key.toLowerCase()
 
-  // 如果显示结果，Enter键进入下一个单词
-  if (showResult.value) {
+  // 如果显示结果并且音频播放完成，Enter键进入下一个单词
+  if (showResult.value && audioEnd.value) {
+
     if (key === 'enter') {
       nextWord()
     }
     return
   }
+  // 在还没有展示结果时检查 
+  if (key === 'enter' && !showResult.value) {
 
-  if (key === 'enter') {
     checkSpelling()
   } else if (key === 'backspace') {
     // 修复删除逻辑：允许删除当前位置的字母
@@ -158,7 +185,9 @@ const handleKeyPress = (event) => {
       currentPosition.value--
       userInput.value[currentPosition.value] = ''
     }
-  } else if (key.match(/[a-z]/) && currentPosition.value < wordLetters.value.length) {
+    // TODO 原本只key只能输入a-z 但不知为和可输入其他特殊键位只能禁用一些常用的
+  } else if (key.match(/[a-z]/) && key !== 'enter' && key !== 'capslock' && currentPosition.value < wordLetters.value.length) {
+
     userInput.value[currentPosition.value] = key
     if (currentPosition.value < wordLetters.value.length - 1) {
       currentPosition.value++
@@ -181,6 +210,7 @@ const checkSpelling = () => {
 }
 
 const nextWord = () => {
+  audioEnd.value = false
   if (currentIndex.value < props.words.length - 1) {
     currentIndex.value++
     emit('next', currentIndex.value)

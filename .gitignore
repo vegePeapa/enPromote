@@ -2,4 +2,5 @@ server/node_modules
 server/logs/access.log
 server/logs/combined.log
 server/logs/error.log
+server/email_test.js
 

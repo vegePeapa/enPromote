@@ -260,7 +260,8 @@
     <!-- 第五关：AI对话 -->
     <div class="level-content" v-if="currentView === 'level-coverP'">
       <!-- 使用AI对话练习组件 -->
-      <AIChatPractice v-if="!showAIChatComplete" :chapter="currentChapter" @complete="handleAIChatComplete" @exit="handleAIChatExit" />
+      <AIChatPractice v-if="!showAIChatComplete" :chapter="currentChapter" @complete="handleAIChatComplete"
+        @exit="handleAIChatExit" />
 
       <!-- 关卡完成 -->
       <div class="level-complete" v-if="showAIChatComplete">
@@ -438,7 +439,7 @@ const completedLevels = computed(() => {
 // 方法
 const getLevelClass = (level) => {
   if (!userInfo.value) return 'locked'
-  
+
   // 优先使用多章节数据
   if (userInfo.value.chapters && userInfo.value.currentChapter) {
     const chapterProgress = userInfo.value.chapters[userInfo.value.currentChapter]
@@ -448,14 +449,14 @@ const getLevelClass = (level) => {
     const cet4 = userInfo.value.cet4
     if (cet4 && cet4[level]) return 'completed'
   }
-  
+
   if (isLevelUnlocked(level)) return 'unlocked'
   return 'locked'
 }
 
 const getLevelProgress = (level) => {
   if (!userInfo.value) return '未开始'
-  
+
   // 优先使用多章节数据
   if (userInfo.value.chapters && userInfo.value.currentChapter) {
     const chapterProgress = userInfo.value.chapters[userInfo.value.currentChapter]
@@ -465,13 +466,13 @@ const getLevelProgress = (level) => {
     const cet4 = userInfo.value.cet4
     if (cet4 && cet4[level]) return '✅ 已完成'
   }
-  
+
   return '未开始'
 }
 
 const getLevelStatus = (level) => {
   if (!userInfo.value) return '🔒'
-  
+
   // 优先使用多章节数据
   if (userInfo.value.chapters && userInfo.value.currentChapter) {
     const chapterProgress = userInfo.value.chapters[userInfo.value.currentChapter]
@@ -481,7 +482,7 @@ const getLevelStatus = (level) => {
     const cet4 = userInfo.value.cet4
     if (cet4 && cet4[level]) return '✅'
   }
-  
+
   if (isLevelUnlocked(level)) return '🔓'
   return '🔒'
 }
@@ -736,10 +737,14 @@ const handleSpellingNext = (index) => {
 
 const handleSpellingCorrect = (index) => {
   correctSpellings.value++
+  console.log('correctSpellings=' + correctSpellings.value);
+
 }
 
 const handleSpellingIncorrect = (index) => {
   incorrectSpellings.value++
+  console.log('incorrectSpellings=' + incorrectSpellings.value);
+
 }
 
 const startListeningPractice = async () => {
@@ -923,13 +928,13 @@ const handleAIChatExit = (stats) => {
 const completeLevel = async (level) => {
   try {
     console.log(`🎯 完成关卡: ${level}`)
-    
+
     // 更新用户进度
     await changeInfo({ [level]: true })
 
     // 刷新用户信息
     await loadUserInfo()
-    
+
     console.log(`✅ 关卡 ${level} 完成状态已更新`)
 
     if (level === 'wordP') {
@@ -959,13 +964,13 @@ const loadUserInfo = async () => {
 
       console.log('🔄 用户信息已更新:', userInfo.value)
       console.log('📍 当前章节:', currentChapter.value)
-      
+
       // 调试章节进度信息
       if (data.chapters && data.currentChapter) {
         const chapterProgress = data.chapters[data.currentChapter]
         console.log(`📊 ${data.currentChapter}章节进度:`, chapterProgress)
       }
-      
+
       // 调试旧数据结构（如果存在）
       if (data.cet4) {
         console.log('🔧 CET4数据:', data.cet4)
@@ -1097,7 +1102,7 @@ onMounted(async () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: 
+  background-image:
     radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
     radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
@@ -1106,9 +1111,17 @@ onMounted(async () => {
 }
 
 @keyframes hotelGradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 /* 餐厅场景主题 - 暖色美食风格 */
@@ -1125,7 +1138,7 @@ onMounted(async () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: 
+  background-image:
     radial-gradient(circle at 30% 70%, rgba(255, 107, 107, 0.3) 0%, transparent 50%),
     radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
     radial-gradient(circle at 50% 50%, rgba(238, 90, 36, 0.2) 0%, transparent 50%);
@@ -1134,9 +1147,17 @@ onMounted(async () => {
 }
 
 @keyframes restaurantGradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .adventure-map {
