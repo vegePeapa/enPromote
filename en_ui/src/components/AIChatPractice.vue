@@ -47,8 +47,39 @@
         </div>
       </div>
 
-      <!-- 任务进度简化显示条 -->
-      <div class="progress-bar">
+      <!-- 当前任务高亮显示区域 -->
+      <div class="current-task-banner" v-if="currentTask">
+        <div class="task-banner-content">
+          <div class="task-icon">🎯</div>
+          <div class="task-info">
+            <div class="task-title">当前任务: {{ currentTask.name }}</div>
+            <div class="task-description">{{ currentTask.description }}</div>
+            <div class="task-words-preview">
+              <span class="words-label">目标单词:</span>
+              <span v-for="word in currentTask.requiredWords.slice(0, 3)" :key="word" 
+                    class="word-preview" 
+                    :class="{ used: currentTask.usedWords && currentTask.usedWords.includes(word) }">
+                {{ word }}
+              </span>
+              <span v-if="currentTask.requiredWords.length > 3" class="more-words">
+                +{{ currentTask.requiredWords.length - 3 }}个
+              </span>
+            </div>
+          </div>
+          <div class="task-progress-circle">
+            <div class="progress-number">{{ progress.tasksCompleted }}/{{ progress.totalTasks }}</div>
+            <div class="progress-label">任务</div>
+          </div>
+        </div>
+        <div class="task-banner-actions">
+          <button class="task-detail-btn" @click="showTaskSidebar = true">
+            查看详情 📋
+          </button>
+        </div>
+      </div>
+
+      <!-- 备用进度条（当没有当前任务时显示） -->
+      <div v-else class="progress-bar">
         <div class="progress-info">
           <span class="progress-text">
             任务进度: {{ progress.tasksCompleted }}/{{ progress.totalTasks }} | 
@@ -253,6 +284,12 @@ const isCurrentTask = computed(() => {
     const incompleteTasks = tasks.value.filter(t => !t.completed)
     return incompleteTasks.length > 0 && incompleteTasks[0].id === task.id
   }
+})
+
+// 当前任务
+const currentTask = computed(() => {
+  const incompleteTasks = tasks.value.filter(t => !t.completed)
+  return incompleteTasks.length > 0 ? incompleteTasks[0] : null
 })
 
 // 根据章节获取场景图标
@@ -1264,6 +1301,135 @@ onMounted(() => {
 
 .scene-tasks li {
   margin-bottom: 0.3rem;
+}
+
+/* 当前任务横幅样式 */
+.current-task-banner {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 100%);
+  color: white;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2);
+  animation: taskPulse 2s ease-in-out infinite;
+}
+
+@keyframes taskPulse {
+  0%, 100% { box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2); }
+  50% { box-shadow: 0 4px 16px rgba(255, 107, 107, 0.4); }
+}
+
+.task-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.task-icon {
+  font-size: 2rem;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-5px); }
+  60% { transform: translateY(-3px); }
+}
+
+.task-info {
+  flex: 1;
+}
+
+.task-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin-bottom: 0.3rem;
+}
+
+.task-description {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-bottom: 0.5rem;
+}
+
+.task-words-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.words-label {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.word-preview {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.2rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.word-preview.used {
+  background: rgba(76, 175, 80, 0.8);
+  border-color: #4CAF50;
+  font-weight: bold;
+  transform: scale(1.05);
+}
+
+.more-words {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.task-progress-circle {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.progress-number {
+  font-size: 1rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.progress-label {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.task-banner-actions {
+  display: flex;
+  justify-content: center;
+}
+
+.task-detail-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.task-detail-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* 简化进度条样式 */
